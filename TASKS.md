@@ -5,20 +5,20 @@ and time estimates. Will be updated as I plan each sprint.
 
 ## Backlog
 
-- [ ] Define ingestion constraints (formats, limits) — 2h
-- [ ] Add query pipeline tests — 4h
-- [ ] Build evaluation scripts (pitch/tempo/noise) — 6h
-- [ ] Baseline metrics report — 4h
+- [ ] Define ingestion constraints (formats, limits)
+- [ ] Add query pipeline tests
+- [ ] Build evaluation scripts (pitch/tempo/noise)
+- [ ] Baseline metrics report
 
 ## Sprint TODO
 
-- [ ] Ingest 1 genre from GTZAN — 2h
-- [ ] Verify query matches from ingested set — 3h
-- [ ] Draft evaluation plan — 2h
+- [ ] Ingest 1 genre from GTZAN
+- [ ] Verify query matches from ingested set
+- [ ] Draft evaluation plan
 
 ## Done
 
-- [x] Audio decoding + segmentation check — 2h
-- [x] Baseline embeddings (MFCC stats) — 3h
-- [x] Dataset ingest CLI improvements — 3h
-- [x] Add persistence for catalogue/index — 3h
+- [x] Audio decoding + segmentation check
+- [x] Baseline embeddings (MFCC stats)
+- [x] Dataset ingest CLI improvements
+- [x] Add persistence for catalogue/index
