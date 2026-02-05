@@ -1,6 +1,6 @@
 # WaveID Meeting Notes
 
-## Meeting — Draft Entry
+## Meeting notes - Draft Entry (will be expanded on later)
 
 **Date:** 02/02/2025 
 **Agenda:**
