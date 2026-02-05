@@ -39,7 +39,42 @@ You can then test the API endpoints:
 - `POST /query` accepts a clip and returns dummy similarity
   results.
 
+## Dataset Ingestion (Offline)
+
+Reference catalogues should be ingested offline instead of uploading
+thousands of tracks through the API. This is faster, more reliable,
+and mirrors production systems where ingestion is a batch process and
+the API handles only short query clips.
+
+Use the CLI script:
+
+```bash
+python -m scripts.ingest_dataset
+```
+
+By default it looks for datasets under `datasets/gtzan/genres_original`
+relative to the repo root. You can override the location and set limits:
+
+```bash
+python -m scripts.ingest_dataset --dataset "datasets/GTZAN/genres_original" --limit 10
+```
+
+## Dataset Layout
+
+Place raw datasets under a top-level `datasets/` folder. Layout:
+
+```
+datasets/
+  gtzan/
+    genres_original/
+      blues/
+      classical/
+      ...
+  fma/
+    small/
+    medium/
+```
+
 In the future the `services` subpackage should be extended to
 implement real audio preprocessing, embedding models and FAISS
-indices. The data model, storage and evaluation harness described in
-Deliverable D1 can be layered on top of this scaffold.
+indices. The data model, storage and evaluation harness described in D1 can be layered on top of this scaffold.

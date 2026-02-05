@@ -20,25 +20,79 @@ embeddings and the top_k results are returned.
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+from typing import Dict, List
+
 import numpy as np
-from typing import List, Dict
+
+from ..config import INDEX_DIR
 
 
 # Global in-memory store for embeddings and their identifiers
 _embeddings: List[np.ndarray] = []
 _identifiers: List[str] = []
+_loaded = False
+_EMBEDDINGS_PATH = INDEX_DIR / "embeddings.npy"
+_IDS_PATH = INDEX_DIR / "embedding_ids.json"
 
 
-def add_reference_embeddings(embeddings: List[list[float]]) -> None:
+def _load_state() -> None:
+    global _embeddings, _identifiers, _loaded
+    if _loaded:
+        return
+    _loaded = True
+    if _EMBEDDINGS_PATH.exists() and _IDS_PATH.exists():
+        array = np.load(_EMBEDDINGS_PATH)
+        if array.ndim == 1:
+            array = array.reshape(0, -1) if array.size else np.empty((0, 0))
+        _embeddings = [row.astype(float) for row in array]
+        _identifiers = json.loads(_IDS_PATH.read_text(encoding="utf-8"))
+
+
+def _save_state() -> None:
+    INDEX_DIR.mkdir(parents=True, exist_ok=True)
+    if _embeddings:
+        matrix = np.vstack(_embeddings)
+        np.save(_EMBEDDINGS_PATH, matrix)
+        _IDS_PATH.write_text(
+            json.dumps(_identifiers, indent=2), encoding="utf-8"
+        )
+    else:
+        if _EMBEDDINGS_PATH.exists():
+            _EMBEDDINGS_PATH.unlink()
+        if _IDS_PATH.exists():
+            _IDS_PATH.unlink()
+
+
+def add_reference_embeddings(
+    embeddings: List[list[float]], embedding_ids: List[str] | None = None
+) -> List[str]:
     """Add a batch of reference embeddings to the store.
 
     Args:
         embeddings: List of embedding vectors (list of floats).
+        embedding_ids: Optional list of identifiers for each embedding.
+
+    Returns:
+        List of embedding identifiers stored in the index.
     """
-    for emb in embeddings:
+    _load_state()
+    if embedding_ids is not None and len(embedding_ids) != len(embeddings):
+        raise ValueError("embedding_ids must match embeddings length.")
+
+    stored_ids: List[str] = []
+    for idx, emb in enumerate(embeddings):
         vector = np.array(emb, dtype=float)
         _embeddings.append(vector)
-        _identifiers.append(f"track_{len(_identifiers) + 1}")
+        if embedding_ids is None:
+            embedding_id = f"emb_{len(_identifiers) + 1}"
+        else:
+            embedding_id = embedding_ids[idx]
+        _identifiers.append(embedding_id)
+        stored_ids.append(embedding_id)
+    _save_state()
+    return stored_ids
 
 
 def query_similar(query_embedding: list[float], top_k: int = 5) -> List[Dict[str, float]]:
@@ -56,6 +110,7 @@ def query_similar(query_embedding: list[float], top_k: int = 5) -> List[Dict[str
     Returns:
         List of matches with identifier and similarity score.
     """
+    _load_state()
     if not _embeddings:
         return []
     query_vec = np.array(query_embedding, dtype=float)

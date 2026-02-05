@@ -7,6 +7,7 @@ Final-Year Project. Each week includes:
 - Challenges / blockers  
 - Solutions / decisions  
 - Next week's plan  
+- Meeting prep summary  
 - Supervisor meeting summary  
 
 ---
@@ -31,6 +32,10 @@ Final-Year Project. Each week includes:
 ### 📌 Next Week’s Plan
 - Come up with a definitive topic
 - N/A
+
+### 🧭 Meeting Prep Summary
+- Summary since last meeting:
+- Decisions/questions:
 
 ### 👥 Supervisor Meeting
 - Date: 30/09/2025
@@ -208,6 +213,44 @@ Final-Year Project. Each week includes:
 - Date: 18/11/2025
 - Key points: Final feedback from supervisor, finishing touches made
 ---
+
+## Christmas Break (Setup / Minor Changes)
+- Implemented a central `config.py` with shared paths and ingestion settings
+- Added data folders for reference, query, index, and embeddings
+- Built audio decoding + segmentation verification script and tested WAV/MP3
+
+---
+
+## Semester 2 — Week 3 (26/01/26 to 01/02/26)
+
+### ✔️ Completed This Week
+- Implemented dataset ingestion via CLI and a reusable dataset loader
+- Added baseline MFCC embeddings and an in‑memory search pipeline
+- Added persistence for catalogue and embeddings on disk
+- Verified ingestion and catalogue listing through the API
+
+### ⚠️ Challenges / Issues
+- Initial MP3 decoding failed until ffmpeg was installed and the terminal restarted
+- API and CLI used separate in‑memory catalogues before persistence was added
+
+### 💡 Solutions / Decisions Made
+- Standardised ingestion parameters in config for deterministic behaviour
+- Persisted catalogue/index to disk to share state between CLI and API
+- Use CLI for bulk reference ingestion and keep API for query clips
+
+### 📌 Next Week’s Plan
+- Ingest a larger GTZAN subset and validate retrieval quality
+- Add a simple query smoke test using an ingested track
+- Start evaluation scripts for pitch/tempo/noise transformations
+
+### 🧭 Meeting Prep Summary
+- Summary since last meeting: I built the core ingestion pipeline (decode, segment, embed, index) with CLI ingestion and disk persistence, and verified that the API can read the stored catalogue.
+- Decisions/questions: I will keep batch ingestion offline and use the API only for query clips; next step is to add evaluation tooling.
+
+### 👥 Supervisor Meeting
+- Date: N/A
+- Key points: N/A
+- Actions: N/A
 
 # 🏁 Project Timeline Overview
 
