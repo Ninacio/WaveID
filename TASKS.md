@@ -29,6 +29,10 @@ and time estimates. Will be updated as I plan each sprint.
 - [ ] Add API integration tests - 1 day
 - [ ] Add Dockerfile + Docker Compose - 1 day
 - [ ] Update README with API usage + examples - 4h
+- [ ] Define ingestion constraints (formats, limits)
+- [ ] Add query pipeline tests
+- [ ] Build evaluation scripts (pitch/tempo/noise)
+- [ ] Baseline metrics report
 
 ## Sprint TODO
 
