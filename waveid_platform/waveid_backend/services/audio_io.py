@@ -23,6 +23,8 @@ def load_audio_from_bytes(
     mono: bool = True,
     normalise: bool = True,
     max_duration_seconds: float | None = None,
+    *,
+    normalize: bool | None = None,
 ) -> tuple[np.ndarray, int]:
     """Decode audio bytes into a waveform.
 
@@ -69,6 +71,9 @@ def load_audio_from_bytes(
             f"Audio duration {duration:.2f}s exceeds "
             f"max {max_duration_seconds:.2f}s."
         )
+
+    if normalize is not None:
+        normalise = normalize
 
     if normalise:
         peak = float(np.max(np.abs(waveform))) if waveform.size else 0.0

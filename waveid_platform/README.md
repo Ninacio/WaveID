@@ -59,6 +59,14 @@ relative to the repo root. You can override the location and set limits:
 python -m scripts.ingest_dataset --dataset "datasets/GTZAN/genres_original" --limit 10
 ```
 
+## Query Smoke Test
+
+Run a quick end-to-end check without the API:
+
+```bash
+python -m scripts.query_smoke_test --reference "path/to/ref.wav" --query "path/to/query.wav"
+```
+
 ## Dataset Layout
 
 Place raw datasets under a top-level `datasets/` folder. Layout:
