@@ -14,7 +14,7 @@ Final-Year Project. Each week includes:
 
 # 📝 Log Entry
 
-## Week 1 — 29/09/2025 to 05/10/2025
+## Week 1 - 29/09/2025 to 05/10/2025
 
 ### ✔️ Completed This Week
 - Was assigned a supervisor and scheduled days for meeting
@@ -42,7 +42,7 @@ Final-Year Project. Each week includes:
 - Key points: Finding a more suitable topic
 - Actions: Conducted more research on new topics
 
-## Week 2 — 06/10/2025 to 12/10/2025
+## Week 2 - 06/10/2025 to 12/10/2025
 
 ### ✔️ Completed This Week
 - Whittled down potential options to 2
@@ -66,7 +66,7 @@ Final-Year Project. Each week includes:
 - Key points: N/A
 - Actions: N/A
 
-## Week 3 — 13/10/2025 to 19/10/2025
+## Week 3 - 13/10/2025 to 19/10/2025
 
 ### ✔️ Completed This Week
 - Chose a definitive topic
@@ -90,7 +90,7 @@ Final-Year Project. Each week includes:
 - Key points: Starting point for dissertation
 - Actions: Operation begun
 
-## Week 4 — 20/10/2025 to 26/10/2025
+## Week 4 - 20/10/2025 to 26/10/2025
 
 ### ✔️ Completed This Week
 - Background research conducted
@@ -114,7 +114,7 @@ Final-Year Project. Each week includes:
 - Key points: Guidance on ethics form
 - Actions: Ethic form completed
 
-## Week 5 — 27/10/2025 to 02/11/2025
+## Week 5 - 27/10/2025 to 02/11/2025
 
 ### ✔️ Completed This Week
 - First draft in the works
@@ -138,7 +138,7 @@ Final-Year Project. Each week includes:
 - Key points: N/A
 - Actions: N/A
 
-## Week 6 — 03/11/2025 to 09/11/2025
+## Week 6 - 03/11/2025 to 09/11/2025
 
 ### ✔️ Completed This Week
 - Ethics form accepted by supervisor
@@ -167,7 +167,7 @@ Final-Year Project. Each week includes:
     - Make sure to know what you are looking to assess.
 - Actions: Applied advice.
 
-## Week 7 — 10/11/2025 to 16/11/2025
+## Week 7 - 10/11/2025 to 16/11/2025
 
 ### ✔️ Completed This Week
 - Dissertation rounded out
@@ -190,7 +190,7 @@ Final-Year Project. Each week includes:
 - Date: 14/11/2025
 - Key points: Took feedback from supervisor and used it to improve dissertation
 
-## Week 8 — 17/11/2025 to 23/11/2025
+## Week 8 - 17/11/2025 to 23/11/2025
 
 ### ✔️ Completed This Week
 - Dissertation Completed and polished
@@ -221,7 +221,7 @@ Final-Year Project. Each week includes:
 
 ---
 
-## Semester 2 — Week 3 (26/01/26 to 01/02/26)
+## Semester 2 - Week 3 (26/01/26 to 01/02/26)
 
 ### ✔️ Completed This Week
 - Implemented dataset ingestion via CLI and a reusable dataset loader

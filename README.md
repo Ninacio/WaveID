@@ -39,6 +39,24 @@ Each entry includes tasks completed, issues encountered, next steps, and supervi
 
 ---
 
+## 🧰 Utilities
+
+Quick helper scripts that support demos and verification:
+
+- `waveid_platform/scripts/compare_audio.py` — compare two audio files by SHA‑256 + basic stats  
+  Example:
+  ```bash
+  python -m scripts.compare_audio --file-a "path/to/a.wav" --file-b "path/to/b.wav"
+  ```
+
+- `waveid_platform/scripts/run_eval_pipeline.py` — one-command evaluation demo  
+  Example:
+  ```bash
+  python -m scripts.run_eval_pipeline --reference "C:\Users\ninac\Documents\GitHub\WaveID\datasets\GTZAN\genres_original\blues\blues.00000.wav" --max-seconds 5 --max-query-segments 1 --top-k 3
+  ```
+
+---
+
 ## 🧠 Project Summary
 
 WaveID aims to detect copyrighted audio in short-form content even when it has been  

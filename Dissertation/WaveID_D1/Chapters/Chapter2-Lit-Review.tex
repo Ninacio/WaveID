@@ -1,0 +1,29 @@
+\documentclass[../Thesis]{subfiles}
+\begin{document}
+\chapter{Literature Review} \label{chapter2}
+\chaptermark{Related Work}
+\section{Overview}
+Audio identification research spans several major domains, including classical audio fingerprinting (\ref{classic audio}), deep audio embeddings (\ref{Deep audio}), contrastive and self-supervised learning (\ref{CSSL}), audio watermarking (\ref{audio watermarking}), and copyright detection frameworks (\ref{copyright detection}). This literature review evaluates each domain, highlighting methodological assumptions, strengths, limitations, and their relevance to the identification of transformed audio in short-form media.
+
+\section{Classical Audio Fingerprinting} \label{classic audio}
+Classical audio fingerprinting is a technique that extracts a "signature" from a song, that way it is uniquely identified and can be recognised quickly when inside a large music database. Classical fingerprinting approaches such as spectral peak constellation maps \parencite{wang2003industrial} and sub-fingerprint hashing \parencite{haitsma2002robust} form the earliest foundations of robust audio identification. These techniques perform well on clean audio and scale efficiently to large libraries, but are vulnerable to pitch shift, time-stretching, and heavy cropping \parencite{cano2005review,ke2005vision}. Such transformations disrupt spectral landmarks and temporal structure, reducing identification accuracy in short-form media.
+
+\section{Deep Audio Embeddings} \label{Deep audio}
+Deep learning embeddings are numerical representations learned through deep neural networks that capture the important acoustic characteristics of a sound, this allows computers to compare audios based on meaning rather than exact matching. Deep learning-based embeddings, including Visual Geometry groups (VGG), the standard CNN architecture \parencite{hershey2017cnn} and OpenL3 \parencite{cramer2019openl3}, offer semantically meaningful representations that are more robust to mild distortions. Empirical evaluations show improved retrieval stability across noisy or partially truncated audio \parencite{fonseca2020fsd50k}. However, extreme pitch and tempo alterations can still degrade performance significantly \parencite{hung2021music}, a key limitation for platforms where such transformations are prevalent.
+
+\section{Contrastive, Siamese, and Self-Supervised Learning} \label{CSSL}
+Contrastive and self-suprervised learning are machine-;earning methods where a model will teaches itself how to distinguish whether or not two audio clips belong together by learning from generated distortions instead of relying on labelled datasets. Contrastive learning models such as contrastive predictive coding (CPC) \parencite{oord2018cpc}, Contrastive learning of musical representation (CLMR) \parencite{spijkervet2021clmr}, and Simple Framework for Contrastive Learning of Visual Representations (Audio SimCLR) \parencite{jansen2020unsupervised} explicitly train invariance by exposing models to augmented audio pairs. These methods demonstrate strong resilience to distortions including cropping, masking, pitch shift, and time-stretch. Their performance depends heavily on augmentation policy design: models generalise best to the transformations represented during training.
+
+\section{Audio Watermarking} \label{audio watermarking}
+Audio watermarking essentially embeds hidden digital information within a song similar to watermarks found in photos. This is so that copyright owners are able to trace when and where a track has been used. Watermarking techniques \parencite{cox2002digital,kirovski2003spread,subramanyam2007review} embed identification data directly into audio signals. Although robust in controlled environments, they are infeasible for user-generated short-form media, as uploaded content is typically not watermarked and cannot be retroactively modified.
+
+\section{Copyright Detection and Industrial Systems} \label{copyright detection}
+Industrial copyright detection systems, such as YouTube’s Content ID \parencite{rafiei2019contentid} and Meta’s Rights Manager, combine fingerprinting, metadata, and content-matching workflows to automatically detect copyrighted music uploaded by users across large platforms. Research highlights issues of fairness, transparency, and inconsistent detection performance under transformation-heavy short-form edits \parencite{mayer2020policy}. Their proprietary nature also limits academic reproducibility.
+
+\section{Synthesis and Identified Gaps}
+Across all domains, several gaps emerge. Classical fingerprints lack transformation robustness, pretrained embeddings degrade under heavy edits, contrastive models require careful augmentation design; watermarking is impractical for user-uploaded media, and industrial systems lack transparency. No existing academic system is explicitly tailored for identifying heavily transformed audio within short-form creator ecosystems.
+
+\section{Positioning WaveID}
+WaveID addresses these gaps by combining contrastive learning with augmentation strategies modelled on real-world, short-form edits, (pitch shifting, time-stretching, cropping, mixing). It provides an open, reproducible baseline for robust audio identification and benchmarks against both classical and modern deep-learning approaches.
+
+\end{document}

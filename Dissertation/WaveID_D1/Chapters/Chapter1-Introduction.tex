@@ -1,0 +1,23 @@
+\documentclass[../Thesis]{subfiles}
+\begin{document}
+\chapter{Introduction} \label{chapter1}
+\chaptermark{Introduction}
+\section{Context and Motivation}
+Short-form video platforms such as TikTok, YouTube Shorts, and Instagram Reels have reshaped patterns of media consumption, leading to unprecedented volumes of user-generated content incorporating copyrighted music. Despite extensive industry efforts, current audio identification systems often underperform when faced with heavily transformed excerpts of songs, such as pitch-shifted, time-stretched, truncated, or mixed audio segments. This creates challenges for copyright enforcement, rights-holder remuneration, and large-scale content moderation.
+
+This dissertation proposes \textbf{WaveID}, a prototype system designed to detect and trace copyrighted audio within short-form and transformed media. The project will investigate the use of deep learning-based audio embeddings and contrastive models capable of recognising semantic audio similarity under substantial modification. The system will be evaluated on openly licensed music datasets and synthetic transformations designed to replicate real-world content-creation behaviour.
+
+\section{Aims and Objectives}
+The aims of this dissertation are:
+\begin{itemize}
+    \item Investigate the limitations of traditional audio fingerprinting and the extent to which they fail under audio transformations.
+    \item Design and implement a modern learning-based audio embedding pipeline.
+    \item Create a similarity-matching subsystem capable of retrieving the closest reference tracks.
+    \item To evaluate robustness under pitch shifts, tempo changes, noise injection, and segment truncation.
+    \item Consider the ethical and legal implications of audio traceability in digital media ecosystems.
+\end{itemize}
+\section{Problems to be addressed}
+This project will address several key research problems that exist for modern audio identification systems. The first being how reliably the models can identify audio after transformations such as pitch, tempo, or length of the song have been changed through cropping. Another aspect we must consider is how short an audio clip can be before the ability for it to be identified fails, particularly with the extremely short clips that are common in social-media platforms. Furthermore, the research will further investigate whether audio embeddings can retain the ability to recognise a song even when it has been heavily altered, or even combined with different audio. Another concern comes from the scalability of similarity, unravelling whether these methods can remain effective even when applied to large audio factories. Lastly, this project will evaluate how an open and transparent research alternative could complement existing proprietary systems by providing reproducible, academically validated approaches to transformed audio identification.
+\section{Dissertation Structure}
+The remainder of this dissertation is organised into several chapters that guide the reader through the development of the WaveID system. Chapter 2 (\ref{chapter2}) presents the background research, reviewing classical audio fingerprinting, deep audio embeddings, contrastive learning, and industrial copyright detection frameworks to establish the academic context of the project. Chapter 3 (\ref{chapter3}) outlines the methodology, detailing the datasets, preprocessing pipeline, embedding extraction techniques, similarity-matching approach, and the evaluation strategy used throughout the research. Chapter 4 (\ref{chapter4}) discusses feasibility work, including preliminary experiments, system design validation, and early findings that support the viability of the proposed approach. Chapter 5 (\ref{chapter5}) provides the conclusions, summarising the main contributions of the study, and identifying opportunities for future research. Lastly, Chapter 6 (\ref{chapter6}) cover the project management, going over project planning, risks, and considerations.
+\end{document}

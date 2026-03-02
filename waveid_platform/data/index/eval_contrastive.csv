@@ -1,0 +1,4 @@
+query_file,transform,severity,top_track_id,top_filename,top_score,top_hits,hit_top1,hit_topk,rank,num_matches
+blues.00000_crop_1_0s.wav,crop,1_0s,83edc988b54f415ea9c1e236edb99970,blues.00000.wav,0.9883104721962711,5,1,1,1,1
+blues.00000_crop_2_0s.wav,crop,2_0s,83edc988b54f415ea9c1e236edb99970,blues.00000.wav,0.9883104721962711,5,1,1,1,1
+blues.00000_noise_snr10.wav,noise,snr10,83edc988b54f415ea9c1e236edb99970,blues.00000.wav,0.9693243754421559,5,1,1,1,1

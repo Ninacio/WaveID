@@ -65,6 +65,16 @@ def _save_state() -> None:
             _IDS_PATH.unlink()
 
 
+def reset_state(persist: bool = False) -> None:
+    """Reset search state for isolated evaluation runs."""
+    global _embeddings, _identifiers, _loaded
+    _embeddings = []
+    _identifiers = []
+    _loaded = True
+    if persist:
+        _save_state()
+
+
 def add_reference_embeddings(
     embeddings: List[list[float]], embedding_ids: List[str] | None = None
 ) -> List[str]:

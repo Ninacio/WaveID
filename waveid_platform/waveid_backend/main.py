@@ -19,6 +19,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from fastapi import FastAPI, UploadFile, File, HTTPException
+import numpy as np
 from pydantic import BaseModel
 
 from .config import (
@@ -27,15 +28,24 @@ from .config import (
     MAX_DURATION_SECONDS,
     MAX_UPLOAD_MB,
     MODEL_VERSION,
+    MIN_TRACK_SCORE,
     MONO,
     NORMALIZE,
     QUERY_DIR,
+    QUERY_EMBEDDING_TOP_K,
+    QUERY_TRACK_TOP_K,
     REFERENCE_DIR,
     SAMPLE_RATE,
     SEGMENT_SECONDS,
 )
 from .services.audio_io import load_audio_from_bytes
-from .services.catalogue import add_segments, add_track, get_track, list_tracks
+from .services.catalogue import (
+    add_segments,
+    add_track,
+    embedding_to_track_map,
+    get_track,
+    list_tracks,
+)
 from .services.embedding import extract_embedding
 from .services.search import add_reference_embeddings, query_similar
 from .services.segmentation import segment_audio
@@ -151,9 +161,16 @@ async def ingest_track(file: UploadFile = File(...)) -> IngestResponse:
     )
 
 
+class QueryMatch(BaseModel):
+    track_id: str
+    filename: str
+    score: float
+    hits: int
+
+
 class QueryResponse(BaseModel):
     query_embedding: list[float]
-    matches: list[dict[str, float]]
+    matches: list[QueryMatch]
 
 
 @app.post("/query", response_model=QueryResponse)
@@ -186,8 +203,52 @@ async def query_clip(file: UploadFile = File(...)) -> QueryResponse:
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-    query_embedding = extract_embedding(waveform, sr)
-    matches = query_similar(query_embedding, top_k=5)
+    query_segments = segment_audio(waveform, sr, SEGMENT_SECONDS, HOP_SECONDS)
+    if query_segments:
+        segment_embeddings = [extract_embedding(segment.samples, sr) for segment in query_segments]
+    else:
+        segment_embeddings = [extract_embedding(waveform, sr)]
+    query_embedding = np.mean(np.array(segment_embeddings, dtype=float), axis=0).tolist()
+
+    track_scores: dict[str, dict[str, float | int | str]] = {}
+    for segment_embedding in segment_embeddings:
+        segment_matches = query_similar(segment_embedding, top_k=QUERY_EMBEDDING_TOP_K)
+        id_map = embedding_to_track_map([match["id"] for match in segment_matches])
+        for match in segment_matches:
+            emb_id = match["id"]
+            score = float(match["score"])
+            meta = id_map.get(emb_id)
+            if meta is None:
+                continue
+            track_id = str(meta["track_id"])
+            row = track_scores.setdefault(
+                track_id,
+                {
+                    "track_id": track_id,
+                    "filename": str(meta["filename"]),
+                    "score_sum": 0.0,
+                    "hits": 0,
+                },
+            )
+            row["score_sum"] = float(row["score_sum"]) + score
+            row["hits"] = int(row["hits"]) + 1
+
+    ranked_matches: list[QueryMatch] = []
+    for row in track_scores.values():
+        hits = int(row["hits"])
+        avg_score = float(row["score_sum"]) / max(hits, 1)
+        if avg_score < MIN_TRACK_SCORE:
+            continue
+        ranked_matches.append(
+            QueryMatch(
+                track_id=str(row["track_id"]),
+                filename=str(row["filename"]),
+                score=avg_score,
+                hits=hits,
+            )
+        )
+    ranked_matches.sort(key=lambda item: (item.score, item.hits), reverse=True)
+    matches = ranked_matches[:QUERY_TRACK_TOP_K]
 
     QUERY_DIR.mkdir(parents=True, exist_ok=True)
     query_id = uuid4().hex

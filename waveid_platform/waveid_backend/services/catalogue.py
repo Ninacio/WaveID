@@ -44,6 +44,17 @@ def _save_state() -> None:
     )
 
 
+def reset_state(persist: bool = False) -> None:
+    """Reset catalogue state for isolated evaluation runs."""
+    global _tracks, _segments, _track_segments, _loaded
+    _tracks = {}
+    _segments = {}
+    _track_segments = {}
+    _loaded = True
+    if persist:
+        _save_state()
+
+
 def add_track(filename: str, duration: float, sr: int, model_version: str) -> str:
     _load_state()
     track_id = uuid4().hex
@@ -107,3 +118,22 @@ def get_track(track_id: str) -> Dict[str, object] | None:
         "num_segments": len(segments),
         "segments": segments,
     }
+
+
+def embedding_to_track_map(embedding_ids: List[str]) -> Dict[str, Dict[str, object]]:
+    """Map embedding IDs to track metadata for aggregation."""
+    _load_state()
+    lookup: Dict[str, Dict[str, object]] = {}
+    targets = set(embedding_ids)
+    if not targets:
+        return lookup
+    for segment in _segments.values():
+        emb_id = str(segment.get("embedding_id", ""))
+        if emb_id in targets:
+            track_id = str(segment["track_id"])
+            track = _tracks.get(track_id, {})
+            lookup[emb_id] = {
+                "track_id": track_id,
+                "filename": str(track.get("filename", "")),
+            }
+    return lookup

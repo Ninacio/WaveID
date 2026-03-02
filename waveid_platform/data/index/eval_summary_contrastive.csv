@@ -1,0 +1,4 @@
+transform,n,top1_hits,top1_rate,topk_hits,topk_rate
+overall,3,3,1.000000,3,1.000000
+crop,2,2,1.000000,2,1.000000
+noise,1,1,1.000000,1,1.000000
