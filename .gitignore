@@ -1,3 +1,7 @@
 datasets/
 *.wav
 *.mp3
+
+# Virtual environment (never commit)
+.venv/
+venv/
