@@ -5,3 +5,6 @@ datasets/
 # Virtual environment (never commit)
 .venv/
 venv/
+
+# Generated contrastive training data (large .npy files)
+**/contrastive_pairs/*.npy
