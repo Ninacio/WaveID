@@ -39,20 +39,24 @@ Each entry includes tasks completed, issues encountered, next steps, and supervi
 
 ---
 
-## 🧰 Utilities
+## 🧰 Demo & API
 
-Quick helper scripts that support demos and verification:
+**Demo workflow and API reference:** See [waveid_platform/README.md](waveid_platform/README.md) for:
+- Step-by-step demo (ingest → start backend → query)
+- **Web UI** at `http://localhost:8000` – upload clips, view matches
+- Full API reference with `curl` examples
+- Swagger UI at `http://localhost:8000/docs`
+
+**Quick utilities:**
 
 - `waveid_platform/scripts/compare_audio.py` — compare two audio files by SHA‑256 + basic stats  
-  Example:
   ```bash
-  python -m scripts.compare_audio --file-a "path/to/a.wav" --file-b "path/to/b.wav"
+  cd waveid_platform && python -m scripts.compare_audio --file-a "path/to/a.wav" --file-b "path/to/b.wav"
   ```
 
 - `waveid_platform/scripts/run_eval_pipeline.py` — one-command evaluation demo  
-  Example:
   ```bash
-  python -m scripts.run_eval_pipeline --reference "C:\Users\ninac\Documents\GitHub\WaveID\datasets\GTZAN\genres_original\blues\blues.00000.wav" --max-seconds 5 --max-query-segments 1 --top-k 3
+  cd waveid_platform && python -m scripts.run_eval_pipeline --reference "path/to/blues.00000.wav" --max-seconds 5 --max-query-segments 1 --top-k 3
   ```
 
 ---

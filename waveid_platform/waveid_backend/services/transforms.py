@@ -1,12 +1,13 @@
 """
 Audio transformation utilities for evaluation and contrastive training.
 
-Reusable pitch, tempo, noise, and crop transforms.
+Reusable pitch, tempo, noise, crop, band-pass filter, and compound transforms.
 """
 
 from __future__ import annotations
 
 import numpy as np
+from scipy.signal import butter, sosfilt
 
 import librosa
 
@@ -41,6 +42,24 @@ def crop_end(waveform: np.ndarray, sr: int, seconds: float) -> np.ndarray:
     return waveform[:-crop_samples].astype(np.float32)
 
 
+def bandpass_filter(
+    waveform: np.ndarray, sr: int, low_hz: float, high_hz: float, order: int = 5
+) -> np.ndarray:
+    nyq = sr / 2.0
+    low = max(low_hz / nyq, 1e-6)
+    high = min(high_hz / nyq, 1.0 - 1e-6)
+    sos = butter(order, [low, high], btype="band", output="sos")
+    filtered = sosfilt(sos, waveform).astype(np.float32)
+    return filtered
+
+
+BANDPASS_PRESETS: dict[str, tuple[float, float]] = {
+    "phone": (300.0, 4000.0),
+    "laptop": (200.0, 8000.0),
+    "tv": (100.0, 10000.0),
+}
+
+
 def normalise(waveform: np.ndarray) -> np.ndarray:
     peak = float(np.max(np.abs(waveform))) if waveform.size else 0.0
     if peak > 0:
@@ -73,4 +92,10 @@ def apply_transform(
         return add_noise(waveform, snr_db=float(value), rng=rng)
     if kind == "crop":
         return crop_end(waveform, sr, seconds=float(value))
+    if kind == "bandpass":
+        preset_name = str(value)
+        if preset_name not in BANDPASS_PRESETS:
+            raise ValueError(f"Unknown bandpass preset: {preset_name}")
+        low_hz, high_hz = BANDPASS_PRESETS[preset_name]
+        return bandpass_filter(waveform, sr, low_hz, high_hz)
     raise ValueError(f"Unknown transform: {kind}")

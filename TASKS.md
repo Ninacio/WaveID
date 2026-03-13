@@ -22,7 +22,6 @@ and time estimates. Will be updated as I plan each sprint.
 - [ ] Create contrastive training data pairs - 1–2 days
 - [ ] Implement contrastive model training loop - 2–3 days
 - [ ] Compare baseline vs contrastive model - 1 day
-- [ ] Minimal frontend UI for upload + results - 1–2 days
 - [ ] Add admin ingestion dashboard (optional) - 1 day
 - [ ] Add robustness sandbox (optional) - 1–2 days
 - [ ] Write unit tests for services - 1–2 days
@@ -42,6 +41,7 @@ and time estimates. Will be updated as I plan each sprint.
 
 ## Done
 
+- [x] Minimal frontend UI for upload + results - 1–2 days
 - [x] Audio decoding + segmentation check - 2h
 - [x] Baseline embeddings (MFCC stats) - 3h
 - [x] Dataset ingest CLI improvements - 3h

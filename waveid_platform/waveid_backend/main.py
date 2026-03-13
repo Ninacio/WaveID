@@ -19,6 +19,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi.staticfiles import StaticFiles
 import numpy as np
 from pydantic import BaseModel
 
@@ -52,6 +53,20 @@ from .services.segmentation import segment_audio
 
 
 app = FastAPI(title="WaveID Backend", version="0.1.0")
+
+# Serve frontend static files
+_STATIC_DIR = Path(__file__).resolve().parent / "static"
+if _STATIC_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(_STATIC_DIR)), name="static")
+
+    @app.get("/")
+    async def root():
+        """Serve the minimal frontend UI."""
+        index_path = _STATIC_DIR / "index.html"
+        if index_path.exists():
+            from fastapi.responses import FileResponse
+            return FileResponse(index_path)
+        return {"message": "WaveID API", "docs": "/docs"}
 
 
 class IngestResponse(BaseModel):

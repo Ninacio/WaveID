@@ -1,0 +1,16 @@
+query_file,transform,severity,top_track_id,top_filename,top_score,top_hits,hit_top1,hit_topk,rank,num_matches
+jazz.00001_bandpass_laptop.wav,bandpass,laptop,de154144c2f74e4684ec8a39e02f1e4c,jazz.00001.wav,0.9100751089049682,5,1,1,1,1
+jazz.00001_bandpass_phone.wav,bandpass,phone,de154144c2f74e4684ec8a39e02f1e4c,jazz.00001.wav,0.8820543805978426,5,1,1,1,1
+jazz.00001_compound_laptop_snr15.wav,compound,laptop_snr15,de154144c2f74e4684ec8a39e02f1e4c,jazz.00001.wav,0.8683851354435538,5,1,1,1,1
+jazz.00001_compound_phone_snr15.wav,compound,phone_snr15,de154144c2f74e4684ec8a39e02f1e4c,jazz.00001.wav,0.8401821307411037,5,1,1,1,1
+jazz.00001_crop_1_0s.wav,crop,1_0s,de154144c2f74e4684ec8a39e02f1e4c,jazz.00001.wav,0.9866936321296587,5,1,1,1,1
+jazz.00001_crop_2_0s.wav,crop,2_0s,de154144c2f74e4684ec8a39e02f1e4c,jazz.00001.wav,0.9866936321296587,5,1,1,1,1
+jazz.00001_noise_snr10.wav,noise,snr10,de154144c2f74e4684ec8a39e02f1e4c,jazz.00001.wav,0.8489464909446586,5,1,1,1,1
+jazz.00001_noise_snr20.wav,noise,snr20,de154144c2f74e4684ec8a39e02f1e4c,jazz.00001.wav,0.9642797003090633,5,1,1,1,1
+jazz.00001_orig.wav,orig,none,de154144c2f74e4684ec8a39e02f1e4c,jazz.00001.wav,0.9900684552043598,5,1,1,1,1
+jazz.00001_pitch_m2.wav,pitch,m2,de154144c2f74e4684ec8a39e02f1e4c,jazz.00001.wav,0.98093211492645,5,1,1,1,1
+jazz.00001_pitch_m4.wav,pitch,m4,de154144c2f74e4684ec8a39e02f1e4c,jazz.00001.wav,0.9711708376263063,5,1,1,1,1
+jazz.00001_pitch_p2.wav,pitch,p2,de154144c2f74e4684ec8a39e02f1e4c,jazz.00001.wav,0.9761717921304545,5,1,1,1,1
+jazz.00001_pitch_p4.wav,pitch,p4,de154144c2f74e4684ec8a39e02f1e4c,jazz.00001.wav,0.9645111184947233,5,1,1,1,1
+jazz.00001_tempo_0_85.wav,tempo,0_85,de154144c2f74e4684ec8a39e02f1e4c,jazz.00001.wav,0.9889042552304954,5,1,1,1,1
+jazz.00001_tempo_1_15.wav,tempo,1_15,de154144c2f74e4684ec8a39e02f1e4c,jazz.00001.wav,0.991312917408389,5,1,1,1,1

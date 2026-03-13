@@ -13,6 +13,7 @@ from pathlib import Path
 import librosa
 import numpy as np
 import soundfile as sf
+from scipy.signal import butter, sosfilt
 
 
 def _load_mono(path: Path, target_sr: int) -> tuple[np.ndarray, int]:
@@ -56,6 +57,16 @@ def _crop(waveform: np.ndarray, sr: int, seconds: float) -> np.ndarray:
     if crop_samples >= waveform.shape[0]:
         return waveform
     return waveform[:-crop_samples].astype(np.float32)
+
+
+def _bandpass_filter(
+    waveform: np.ndarray, sr: int, low_hz: float, high_hz: float, order: int = 5
+) -> np.ndarray:
+    nyq = sr / 2.0
+    low = max(low_hz / nyq, 1e-6)
+    high = min(high_hz / nyq, 1.0 - 1e-6)
+    sos = butter(order, [low, high], btype="band", output="sos")
+    return sosfilt(sos, waveform).astype(np.float32)
 
 
 def main() -> int:
@@ -113,6 +124,21 @@ def main() -> int:
         transformed = _crop(waveform, sr, seconds=seconds)
         label = str(seconds).replace(".", "_")
         _write_clip(output_dir / f"{base_name}_crop_{label}s.wav", transformed, sr)
+
+    # Band-pass filter (simulates playback through low-quality devices)
+    bandpass_presets = {
+        "phone": (300.0, 4000.0),
+        "laptop": (200.0, 8000.0),
+    }
+    for preset_name, (low_hz, high_hz) in bandpass_presets.items():
+        transformed = _bandpass_filter(waveform, sr, low_hz, high_hz)
+        _write_clip(output_dir / f"{base_name}_bandpass_{preset_name}.wav", transformed, sr)
+
+    # Compound: band-pass + noise (simulates recording from a device in a noisy environment)
+    for preset_name, (low_hz, high_hz) in bandpass_presets.items():
+        filtered = _bandpass_filter(waveform, sr, low_hz, high_hz)
+        transformed = _add_noise(filtered, snr_db=15.0, rng=rng)
+        _write_clip(output_dir / f"{base_name}_compound_{preset_name}_snr15.wav", transformed, sr)
 
     print(f"Generated transformed clips in: {output_dir}")
     return 0

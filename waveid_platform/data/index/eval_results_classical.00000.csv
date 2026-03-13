@@ -1,0 +1,16 @@
+query_file,transform,severity,top_track_id,top_filename,top_score,top_hits,hit_top1,hit_topk,rank,num_matches
+classical.00000_bandpass_laptop.wav,bandpass,laptop,aba7e8bcaf2e40c59822e9cd994f41bd,classical.00000.wav,0.7698962082360898,5,1,1,1,1
+classical.00000_bandpass_phone.wav,bandpass,phone,aba7e8bcaf2e40c59822e9cd994f41bd,classical.00000.wav,0.7978298718766613,5,1,1,1,1
+classical.00000_compound_laptop_snr15.wav,compound,laptop_snr15,aba7e8bcaf2e40c59822e9cd994f41bd,classical.00000.wav,0.7418819569348327,5,1,1,1,1
+classical.00000_compound_phone_snr15.wav,compound,phone_snr15,aba7e8bcaf2e40c59822e9cd994f41bd,classical.00000.wav,0.6991684231334695,5,1,1,1,1
+classical.00000_crop_1_0s.wav,crop,1_0s,aba7e8bcaf2e40c59822e9cd994f41bd,classical.00000.wav,0.9203081566597741,5,1,1,1,1
+classical.00000_crop_2_0s.wav,crop,2_0s,aba7e8bcaf2e40c59822e9cd994f41bd,classical.00000.wav,0.9203081566597741,5,1,1,1,1
+classical.00000_noise_snr10.wav,noise,snr10,aba7e8bcaf2e40c59822e9cd994f41bd,classical.00000.wav,0.5030099145530216,5,1,1,1,1
+classical.00000_noise_snr20.wav,noise,snr20,aba7e8bcaf2e40c59822e9cd994f41bd,classical.00000.wav,0.8493390035450998,5,1,1,1,1
+classical.00000_orig.wav,orig,none,aba7e8bcaf2e40c59822e9cd994f41bd,classical.00000.wav,0.9203081566597741,5,1,1,1,1
+classical.00000_pitch_m2.wav,pitch,m2,aba7e8bcaf2e40c59822e9cd994f41bd,classical.00000.wav,0.8809038506111019,5,1,1,1,1
+classical.00000_pitch_m4.wav,pitch,m4,aba7e8bcaf2e40c59822e9cd994f41bd,classical.00000.wav,0.8634135583068396,5,1,1,1,1
+classical.00000_pitch_p2.wav,pitch,p2,aba7e8bcaf2e40c59822e9cd994f41bd,classical.00000.wav,0.8965033570947929,5,1,1,1,1
+classical.00000_pitch_p4.wav,pitch,p4,aba7e8bcaf2e40c59822e9cd994f41bd,classical.00000.wav,0.8600357597747518,5,1,1,1,1
+classical.00000_tempo_0_85.wav,tempo,0_85,aba7e8bcaf2e40c59822e9cd994f41bd,classical.00000.wav,0.9042623427386361,5,1,1,1,1
+classical.00000_tempo_1_15.wav,tempo,1_15,aba7e8bcaf2e40c59822e9cd994f41bd,classical.00000.wav,0.8515996407092157,5,1,1,1,1

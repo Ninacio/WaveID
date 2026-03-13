@@ -1,0 +1,16 @@
+query_file,transform,severity,top_track_id,top_filename,top_score,top_hits,hit_top1,hit_topk,rank,num_matches
+reggae.00000_bandpass_laptop.wav,bandpass,laptop,08b1c73a4c554925aaac99369bd8f6d2,reggae.00000.wav,0.8027002453441192,5,1,1,1,1
+reggae.00000_bandpass_phone.wav,bandpass,phone,08b1c73a4c554925aaac99369bd8f6d2,reggae.00000.wav,0.7371747826874083,5,1,1,1,1
+reggae.00000_compound_laptop_snr15.wav,compound,laptop_snr15,08b1c73a4c554925aaac99369bd8f6d2,reggae.00000.wav,0.8570143021502652,5,1,1,1,1
+reggae.00000_compound_phone_snr15.wav,compound,phone_snr15,08b1c73a4c554925aaac99369bd8f6d2,reggae.00000.wav,0.8018138398921432,5,1,1,1,1
+reggae.00000_crop_1_0s.wav,crop,1_0s,08b1c73a4c554925aaac99369bd8f6d2,reggae.00000.wav,0.9813387887236772,5,1,1,1,1
+reggae.00000_crop_2_0s.wav,crop,2_0s,08b1c73a4c554925aaac99369bd8f6d2,reggae.00000.wav,0.9813387887236772,5,1,1,1,1
+reggae.00000_noise_snr10.wav,noise,snr10,08b1c73a4c554925aaac99369bd8f6d2,reggae.00000.wav,0.8594562866599993,5,1,1,1,1
+reggae.00000_noise_snr20.wav,noise,snr20,08b1c73a4c554925aaac99369bd8f6d2,reggae.00000.wav,0.9729082335211888,5,1,1,1,1
+reggae.00000_orig.wav,orig,none,08b1c73a4c554925aaac99369bd8f6d2,reggae.00000.wav,0.9842316384090359,5,1,1,1,1
+reggae.00000_pitch_m2.wav,pitch,m2,08b1c73a4c554925aaac99369bd8f6d2,reggae.00000.wav,0.896806132755494,5,1,1,1,1
+reggae.00000_pitch_m4.wav,pitch,m4,08b1c73a4c554925aaac99369bd8f6d2,reggae.00000.wav,0.8221930774858741,5,1,1,1,1
+reggae.00000_pitch_p2.wav,pitch,p2,08b1c73a4c554925aaac99369bd8f6d2,reggae.00000.wav,0.948354108429068,5,1,1,1,1
+reggae.00000_pitch_p4.wav,pitch,p4,08b1c73a4c554925aaac99369bd8f6d2,reggae.00000.wav,0.9380014737975912,5,1,1,1,1
+reggae.00000_tempo_0_85.wav,tempo,0_85,08b1c73a4c554925aaac99369bd8f6d2,reggae.00000.wav,0.9782997039376475,5,1,1,1,1
+reggae.00000_tempo_1_15.wav,tempo,1_15,08b1c73a4c554925aaac99369bd8f6d2,reggae.00000.wav,0.9856916933098784,5,1,1,1,1
