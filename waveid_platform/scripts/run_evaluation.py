@@ -141,7 +141,7 @@ def query_track_matches(
 def parse_transform(stem: str) -> tuple[str, str]:
     if stem.endswith("_orig"):
         return ("orig", "none")
-    for kind in ("compound", "bandpass", "pitch", "tempo", "noise", "crop"):
+    for kind in ("compound", "bandpass", "lossy", "pitch", "tempo", "noise", "crop"):
         marker = f"_{kind}_"
         if marker in stem:
             severity = stem.split(marker, 1)[1]

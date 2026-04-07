@@ -3,6 +3,8 @@ Generate transformed audio clips for robustness evaluation.
 
 Usage:
     python -m scripts.evaluate_transformations --input "path/to/audio.wav" --output-dir "data/query/eval"
+
+Lossy MP3 transforms require ffmpeg on PATH (used by pydub).
 """
 
 from __future__ import annotations
@@ -14,6 +16,8 @@ import librosa
 import numpy as np
 import soundfile as sf
 from scipy.signal import butter, sosfilt
+
+from waveid_backend.services.transforms import LOSSY_MP3_BITRATES, lossy_mp3_roundtrip
 
 
 def _load_mono(path: Path, target_sr: int) -> tuple[np.ndarray, int]:
@@ -139,6 +143,11 @@ def main() -> int:
         filtered = _bandpass_filter(waveform, sr, low_hz, high_hz)
         transformed = _add_noise(filtered, snr_db=15.0, rng=rng)
         _write_clip(output_dir / f"{base_name}_compound_{preset_name}_snr15.wav", transformed, sr)
+
+    # Lossy compression: MP3 encode/decode at low bitrates (requires ffmpeg on PATH)
+    for kbps in LOSSY_MP3_BITRATES:
+        transformed = lossy_mp3_roundtrip(waveform, sr, bitrate_kbps=kbps)
+        _write_clip(output_dir / f"{base_name}_lossy_mp3_{kbps}k.wav", transformed, sr)
 
     print(f"Generated transformed clips in: {output_dir}")
     return 0

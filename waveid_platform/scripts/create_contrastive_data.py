@@ -1,8 +1,18 @@
 """
 Create positive/negative pairs for contrastive training.
 
-Usage:
-    python -m scripts.create_contrastive_data --dataset-dir "path/to/gtzan/blues" --output-dir "data/embeddings/contrastive_pairs" --max-tracks 10 --pairs-per-track 50
+Usage (single genre):
+    python -m scripts.create_contrastive_data ^
+        --dataset-dirs "../datasets/GTZAN/genres_original/blues" ^
+        --output-dir "data/embeddings/contrastive_pairs" ^
+        --max-tracks-per-dir 10 --pairs-per-track 50
+
+Usage (all genres):
+    python -m scripts.create_contrastive_data ^
+        --dataset-dirs "../datasets/GTZAN/genres_original/blues" ^
+                       "../datasets/GTZAN/genres_original/classical" ^
+                       ... ^
+        --output-dir "data/embeddings/contrastive_multi"
 """
 
 from __future__ import annotations
@@ -40,7 +50,7 @@ def _fix_length(waveform: np.ndarray, target_len: int) -> np.ndarray:
 
 
 def _iter_audio_files(root: Path) -> list[Path]:
-    """Find audio files in directory. Uses top-level glob to avoid rglob traversal issues."""
+    """Find audio files in directory (top-level only)."""
     files = []
     for ext in ALLOWED_EXTENSIONS:
         files.extend(root.glob(f"*{ext}"))
@@ -49,65 +59,76 @@ def _iter_audio_files(root: Path) -> list[Path]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Create contrastive training pairs.")
-    parser.add_argument("--dataset-dir", required=True, help="Dataset root (e.g. GTZAN genre folder).")
+    parser.add_argument(
+        "--dataset-dirs", nargs="+", required=True, type=Path,
+        help="One or more directories containing audio files (e.g. one per GTZAN genre).",
+    )
     parser.add_argument("--output-dir", default="data/embeddings/contrastive_pairs", help="Output directory.")
-    parser.add_argument("--max-tracks", type=int, default=20, help="Max tracks to process.")
-    parser.add_argument("--pairs-per-track", type=int, default=30, help="Pairs to generate per track.")
+    parser.add_argument("--max-tracks-per-dir", type=int, default=20, help="Max tracks to load per directory.")
+    parser.add_argument("--pairs-per-track", type=int, default=30, help="Triplets to generate per track.")
     parser.add_argument("--seed", type=int, default=42, help="Random seed.")
     args = parser.parse_args()
 
-    dataset_dir = Path(args.dataset_dir).resolve()
     output_dir = Path(args.output_dir).resolve()
-    if not dataset_dir.exists():
-        print(f"Dataset dir not found: {dataset_dir}")
-        print("Use an absolute path, e.g. C:\\Users\\...\\datasets\\GTZAN\\genres_original\\blues")
-        return 1
-    if not dataset_dir.is_dir():
-        print(f"Dataset path is not a directory: {dataset_dir}")
-        return 1
-
     rng = np.random.default_rng(args.seed)
     target_len = int(SEGMENT_SECONDS * SAMPLE_RATE)
-    files = _iter_audio_files(dataset_dir)[: args.max_tracks]
-    if len(files) < 2:
-        print("Need at least 2 audio files for contrastive pairs.")
+
+    all_segments: list[tuple[Path, np.ndarray]] = []
+    total_tracks = 0
+
+    for dataset_dir in args.dataset_dirs:
+        dataset_dir = dataset_dir.resolve()
+        if not dataset_dir.is_dir():
+            print(f"Warning: skipping non-directory {dataset_dir}")
+            continue
+        files = _iter_audio_files(dataset_dir)[: args.max_tracks_per_dir]
+        loaded = 0
+        for path in files:
+            try:
+                waveform, sr = _load_mono(path, SAMPLE_RATE)
+                segments = segment_audio(waveform, sr, SEGMENT_SECONDS, HOP_SECONDS)
+                for seg in segments:
+                    all_segments.append((path, seg.samples))
+                loaded += 1
+            except Exception as e:
+                print(f"  Skipping {path.name}: {e}")
+        total_tracks += loaded
+        print(f"Loaded {loaded} tracks from {dataset_dir.name} ({len(files)} found)")
+
+    if len(all_segments) < 2:
+        print("Not enough segments across all directories.")
         return 1
+
+    total_pairs = args.pairs_per_track * total_tracks
+    print(f"\nTotal tracks: {total_tracks}, segments: {len(all_segments)}, "
+          f"generating {total_pairs} triplets...")
 
     output_dir.mkdir(parents=True, exist_ok=True)
     anchors_list: list[np.ndarray] = []
     positives_list: list[np.ndarray] = []
     negatives_list: list[np.ndarray] = []
 
-    all_segments: list[tuple[Path, np.ndarray]] = []
-    for path in files:
-        try:
-            waveform, sr = _load_mono(path, SAMPLE_RATE)
-            segments = segment_audio(waveform, sr, SEGMENT_SECONDS, HOP_SECONDS)
-            for seg in segments:
-                all_segments.append((path, seg.samples))
-        except Exception as e:
-            print(f"Skipping {path}: {e}")
-            continue
-
-    if len(all_segments) < 2:
-        print("Not enough segments.")
-        return 1
-
-    n = 0
-    for _ in range(args.pairs_per_track * len(files)):
-        if n >= args.pairs_per_track * len(files):
-            break
+    for i in range(total_pairs):
         idx_a = rng.integers(0, len(all_segments))
         path_a, seg_a = all_segments[idx_a]
         anchor = normalise(seg_a)
 
         kind, value = TRANSFORM_PRESETS[rng.integers(0, len(TRANSFORM_PRESETS))]
-        positive = normalise(
-            _fix_length(
-                apply_transform(seg_a.copy(), SAMPLE_RATE, kind, value, rng=rng),
-                target_len,
+        try:
+            positive = normalise(
+                _fix_length(
+                    apply_transform(seg_a.copy(), SAMPLE_RATE, kind, value, rng=rng),
+                    target_len,
+                )
             )
-        )
+        except Exception:
+            kind, value = "noise", 15.0
+            positive = normalise(
+                _fix_length(
+                    apply_transform(seg_a.copy(), SAMPLE_RATE, kind, value, rng=rng),
+                    target_len,
+                )
+            )
 
         idx_neg = rng.integers(0, len(all_segments))
         while all_segments[idx_neg][0] == path_a:
@@ -117,7 +138,9 @@ def main() -> int:
         anchors_list.append(_fix_length(anchor, target_len))
         positives_list.append(positive)
         negatives_list.append(negative)
-        n += 1
+
+        if (i + 1) % 500 == 0:
+            print(f"  {i + 1}/{total_pairs} triplets generated...")
 
     anchors_arr = np.stack(anchors_list, axis=0)
     positives_arr = np.stack(positives_list, axis=0)
@@ -127,8 +150,8 @@ def main() -> int:
     np.save(output_dir / "positives.npy", positives_arr)
     np.save(output_dir / "negatives.npy", negatives_arr)
 
-    print(f"Created {len(anchors_list)} pairs in {output_dir}")
-    print(f"  anchors.npy: {anchors_arr.shape}")
+    print(f"\nCreated {len(anchors_list)} triplets in {output_dir}")
+    print(f"  anchors.npy:   {anchors_arr.shape}")
     print(f"  positives.npy: {positives_arr.shape}")
     print(f"  negatives.npy: {negatives_arr.shape}")
     return 0

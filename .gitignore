@@ -6,5 +6,9 @@ datasets/
 .venv/
 venv/
 
-# Generated contrastive training data (large .npy files)
+# Dissertation and documentation (not for the code repo)
+Dissertation/
+
+# Generated contrastive training data and large embedding arrays (>100 MB, GitHub limit)
 **/contrastive_pairs/*.npy
+waveid_platform/data/embeddings/

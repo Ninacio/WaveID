@@ -212,6 +212,7 @@ Final-Year Project. Each week includes:
 ### 👥 Supervisor Meeting
 - Date: 18/11/2025
 - Key points: Final feedback from supervisor, finishing touches made
+
 ---
 
 ## Christmas Break (Setup / Minor Changes)
@@ -252,14 +253,84 @@ Final-Year Project. Each week includes:
 - Key points: N/A
 - Actions: N/A
 
+## Semester 2 - Weeks 4–8 (02/02/2026 to 08/03/2026)
+
+### ✔️ Completed This Week (period summary)
+- Query pipeline with top-k retrieval and scores; evaluation scripts for pitch, tempo, noise, crop, filtering, compound transforms, and low-bitrate MP3 (in test battery and contrastive training augmentations)
+- Contrastive encoder trained on multi-genre GTZAN data (all ten genres) with evaluation-aligned augmentations; comparison vs MFCC baseline in reports
+- Severity sweeps (varying strength per transform) with main summary destined for Chapter 7 and extended plots in Appendix B
+- Demo case documented: heavy pitch misrank with MFCC on blues subset; contrastive model restores correct top-1 on five-track catalogue
+
+### ⚠️ Challenges / Issues
+- Balancing dissertation page limits with full sweep detail (appendix for long graphs)
+- Tuning thresholds and reporting when comparing learned embeddings vs classical fingerprints
+
+### 💡 Solutions / Decisions Made
+- Keep Chapter 7 readable; put full severity figures and Chromaprint per-transform notes in appendices
+- Use fixed Chromaprint threshold (0.35) consistently in tables for comparability
+
+### 📌 Next Week’s Plan (at time)
+- External benchmark write-up; cross-genre combined index; final dissertation integration
+
+### 🧭 Meeting Prep Summary
+- Summary since last meeting: End-to-end evaluation pipeline, multi-genre contrastive training, MP3 and sweeps in code and thesis
+- Decisions/questions: How to present per-genre 100% vs cross-genre ~54% without overstating real-world performance
+
+### 👥 Supervisor Meeting
+- Date: N/A
+- Key points: N/A
+- Actions: N/A
+
+## Semester 2 - Weeks 9–11 (09/03/2026 to 29/03/2026)
+
+### ✔️ Completed This Week (period summary)
+- Chromaprint 1.6 benchmark on same clips as WaveID (blues table and all ten genres); written up in Evaluation Chapter 7 (Tables 7.4–7.5)
+- Cross-genre combined-index evaluation: 50 reference tracks, 850 queries, ~53.8% vs ~54.6% top-1 (baseline vs contrastive); score compression discussion (Table 7.8)
+- Dissertation D3 aligned with department handbook: section order, references placement, short Generative AI summary, Project Proposal and D1-to-D3 changes section
+- Abstract and Introduction updated to state the two evaluation scopes (small per-genre catalogue vs large mixed list)
+
+### ⚠️ Challenges / Issues
+- Explaining why contrastive scores cluster near 0.99 under cross-genre search while still reporting nuanced robustness gains in per-genre tests
+
+### 💡 Solutions / Decisions Made
+- Lead with two-scope story in abstract; point readers to Chapter 8 for interpretation
+- No Dejavu benchmark in scope; Chromaprint as primary external check for the dissertation
+
+### 📌 Next Week’s Plan
+- Final PDF checks; supervisor update; submission prep
+
+### 🧭 Meeting Prep Summary
+- Summary since last meeting: Full evaluation chapter, appendices for sweeps and extended Chromaprint commentary, benchmark and cross-genre results integrated
+- Decisions/questions: Optional supervisor email with PDF table/figure pointers (Chapter 7 and Appendix B)
+
+### 👥 Supervisor Meeting
+- Date: N/A
+- Key points: N/A
+- Actions: N/A
+
+## April 2026 (final draft and communication)
+
+### ✔️ Completed This Week
+- Final dissertation PDF assembled (WaveID_Diss.pdf, March 2026 submission build)
+- Draft email to supervisor summarising Chromaprint comparison, severity sweeps, MP3 in battery, multi-genre training, 50-track cross-genre results, and handbook housekeeping; includes pointers to abstract, intro, Chapter 7, and discussion where useful
+- Logbook brought up to date to Semester 2 completion
+
+### 📌 Next Steps
+- Send supervisor update when ready; any last-minute thesis tweaks after feedback
+
+### 👥 Supervisor Meeting
+- Date: TBD
+- Key points: TBD after send
+- Actions: TBD
+
 # 🏁 Project Timeline Overview
 
 | Phase | Start | End | Status |
 |-------|-------|------|--------|
-| Research & Planning | | | |
-| Prototype Development | | | |
-| Evaluation | | | |
-| Final Dissertation | | | |
+| Research & Planning | Sep 2025 | Nov 2025 | Complete |
+| Prototype Development | Nov 2025 | Feb 2026 | Complete |
+| Evaluation | Feb 2026 | Mar 2026 | Complete |
+| Final Dissertation (D3) | Mar 2026 | Mar 2026 | Complete (draft submitted Mar 2026) |
 
 ---
 
