@@ -132,7 +132,8 @@ def main() -> int:
     gtzan = args.gtzan_root.resolve()
     model = args.model_version or cfg.MODEL_VERSION
 
-    # Widen the embedding search to cover all 50 tracks' segments
+    # The default top-k is tuned for a small index. With 50 tracks each having
+    # many segments, we need to retrieve more candidates before track-level aggregation.
     original_emb_top_k = cfg.QUERY_EMBEDDING_TOP_K
     cfg.QUERY_EMBEDDING_TOP_K = 50
 
@@ -192,6 +193,7 @@ def main() -> int:
                         model_version=model,
                     )
                     transform, severity = parse_transform(qf.stem)
+                    # Find where the correct reference track appears in the ranked results
                     rank = None
                     for idx, m in enumerate(matches, 1):
                         if str(m["track_id"]) == ref_tid:

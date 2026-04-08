@@ -79,6 +79,13 @@ def query_track_matches(
     max_query_segments: int | None,
     model_version: str | None = None,
 ) -> list[dict[str, Any]]:
+    """
+    Run a query clip against the index and return the top matching tracks.
+
+    Each query clip is split into segments, each segment is fingerprinted,
+    and the results are aggregated at the track level so one score per track
+    is returned rather than one score per segment.
+    """
     contents = path.read_bytes()
     waveform, sr = load_audio_from_bytes(
         contents,
@@ -89,6 +96,7 @@ def query_track_matches(
         max_duration_seconds=MAX_DURATION_SECONDS,
     )
     query_segments = segment_audio(waveform, sr, SEGMENT_SECONDS, HOP_SECONDS)
+    # Optionally cap the number of segments to speed up evaluation
     if max_query_segments is not None and max_query_segments > 0:
         query_segments = query_segments[:max_query_segments]
     version = model_version or MODEL_VERSION
@@ -97,6 +105,7 @@ def query_track_matches(
     else:
         segment_embeddings = [extract_embedding(waveform, sr, model_version=version)]
 
+    # Accumulate similarity scores per track across all query segments
     track_scores: dict[str, dict[str, Any]] = {}
     for segment_embedding in segment_embeddings:
         segment_matches = query_similar(segment_embedding, top_k=QUERY_EMBEDDING_TOP_K)
@@ -108,6 +117,7 @@ def query_track_matches(
             if meta is None:
                 continue
             track_id = str(meta["track_id"])
+            # Sum scores so we can compute an average later
             row = track_scores.setdefault(
                 track_id,
                 {
@@ -120,12 +130,13 @@ def query_track_matches(
             row["score_sum"] = float(row["score_sum"]) + score
             row["hits"] = int(row["hits"]) + 1
 
+    # Convert accumulated sums to average scores and filter out low-confidence matches
     ranked_matches: list[dict[str, Any]] = []
     for row in track_scores.values():
         hits = int(row["hits"])
         avg_score = float(row["score_sum"]) / max(hits, 1)
         if avg_score < MIN_TRACK_SCORE:
-            continue
+            continue  # below the minimum confidence threshold — skip
         ranked_matches.append(
             {
                 "track_id": str(row["track_id"]),
@@ -139,6 +150,7 @@ def query_track_matches(
 
 
 def parse_transform(stem: str) -> tuple[str, str]:
+    """Infer the transform type and severity from a generated filename (e.g. 'track_pitch_p4')."""
     if stem.endswith("_orig"):
         return ("orig", "none")
     for kind in ("compound", "bandpass", "lossy", "pitch", "tempo", "noise", "crop"):

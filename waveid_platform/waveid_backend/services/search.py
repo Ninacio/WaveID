@@ -38,9 +38,10 @@ _IDS_PATH = INDEX_DIR / "embedding_ids.json"
 
 
 def _load_state() -> None:
+    """Load fingerprints from disk into memory if not already loaded."""
     global _embeddings, _identifiers, _loaded
     if _loaded:
-        return
+        return  # already loaded — nothing to do
     _loaded = True
     if _EMBEDDINGS_PATH.exists() and _IDS_PATH.exists():
         array = np.load(_EMBEDDINGS_PATH)
@@ -106,32 +107,31 @@ def add_reference_embeddings(
 
 
 def query_similar(query_embedding: list[float], top_k: int = 5) -> List[Dict[str, float]]:
-    """Return the top_k most similar reference embeddings.
-
-    This function uses cosine similarity to compute distances between
-    the query and all stored embeddings. It returns a list of
-    dictionaries with ``id`` and ``score`` keys sorted by decreasing
-    similarity.
+    """
+    Compares the query fingerprint against every stored reference fingerprint
+    and returns the closest matches in ranked order.
 
     Args:
-        query_embedding: The embedding vector for the query clip.
+        query_embedding: The fingerprint of the query clip.
         top_k: Number of matches to return.
 
     Returns:
-        List of matches with identifier and similarity score.
+        List of matches with identifier and similarity score (highest first).
     """
     _load_state()
     if not _embeddings:
-        return []
+        return []  # no reference tracks have been ingested yet
     query_vec = np.array(query_embedding, dtype=float)
-    # Normalise query for cosine similarity
+    # Normalise the query so comparisons are based on direction, not magnitude.
+    # The small offset (1e-9) prevents division by zero if the vector is all zeros.
     q_norm = np.linalg.norm(query_vec) + 1e-9
     scores = []
     for vec, ident in zip(_embeddings, _identifiers):
         v_norm = np.linalg.norm(vec) + 1e-9
+        # Cosine similarity: 1.0 = identical direction, 0.0 = completely unrelated
         score = float(np.dot(query_vec, vec) / (q_norm * v_norm))
         scores.append((ident, score))
-    # Sort by score descending and select top_k
+    # Put the best match first
     scores.sort(key=lambda x: x[1], reverse=True)
-    matches = [ {"id": ident, "score": score} for ident, score in scores[:top_k] ]
+    matches = [{"id": ident, "score": score} for ident, score in scores[:top_k]]
     return matches

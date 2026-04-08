@@ -69,6 +69,7 @@ def ingest_dataset(
     for path in files:
         try:
             contents = path.read_bytes()
+            # Step 1: decode the audio file and standardise it (mono, 16 kHz, normalised)
             waveform, sr = load_audio_from_bytes(
                 contents,
                 filename=path.name,
@@ -78,9 +79,13 @@ def ingest_dataset(
                 max_duration_seconds=MAX_DURATION_SECONDS,
             )
             duration_seconds = float(waveform.size / sr) if sr else 0.0
+            # Step 2: register the track in the catalogue and get its unique ID
             track_id = add_track(path.name, duration_seconds, sr, MODEL_VERSION)
+            # Step 3: split the track into 2-second overlapping clips
             segments = segment_audio(waveform, sr, SEGMENT_SECONDS, HOP_SECONDS)
+            # Step 4: convert each clip to a fingerprint
             embeddings = [extract_embedding(seg.samples, sr) for seg in segments]
+            # Step 5: store all fingerprints in the search index
             embedding_ids = add_reference_embeddings(embeddings)
             segment_records = [
                 {
@@ -91,6 +96,7 @@ def ingest_dataset(
                 for segment, embedding_id in zip(segments, embedding_ids)
             ]
             add_segments(track_id, segment_records)
+            # Keep a copy of the original audio file for reference
             reference_path = REFERENCE_DIR / f"{track_id}{path.suffix.lower()}"
             reference_path.write_bytes(contents)
 

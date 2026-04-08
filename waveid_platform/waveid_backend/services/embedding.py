@@ -23,20 +23,22 @@ from ..config import (
 
 
 def _extract_mfcc(waveform: np.ndarray, sr: int) -> list[float]:
-    """MFCC-based baseline embedding."""
+    """Converts a short audio clip into a 128-number fingerprint using frequency statistics (MFCC)."""
     if waveform.size == 0:
-        return [0.0] * EMBEDDING_DIM
+        return [0.0] * EMBEDDING_DIM  # nothing to process — return a blank fingerprint
 
+    # Summarise how energy is spread across frequency bands over time
     mfcc = librosa.feature.mfcc(y=waveform, sr=sr, n_mfcc=MFCC_COEFFS)
-    mfcc_mean = mfcc.mean(axis=1)
-    mfcc_std = mfcc.std(axis=1)
-    embedding = np.concatenate([mfcc_mean, mfcc_std])
+    mfcc_mean = mfcc.mean(axis=1)  # average level of each band across the clip
+    mfcc_std = mfcc.std(axis=1)    # how much each band varied across the clip
+    embedding = np.concatenate([mfcc_mean, mfcc_std])  # combine into one fingerprint
 
+    # Ensure the fingerprint is always exactly 128 numbers long
     if embedding.size < EMBEDDING_DIM:
         pad_width = EMBEDDING_DIM - embedding.size
-        embedding = np.pad(embedding, (0, pad_width))
+        embedding = np.pad(embedding, (0, pad_width))  # fill any gap with zeros
     elif embedding.size > EMBEDDING_DIM:
-        embedding = embedding[:EMBEDDING_DIM]
+        embedding = embedding[:EMBEDDING_DIM]           # trim if unexpectedly too long
 
     return embedding.astype(float).tolist()
 
@@ -45,13 +47,14 @@ _contrastive_model = None
 
 
 def _extract_contrastive(waveform: np.ndarray, sr: int) -> list[float]:
-    """Contrastive CNN embedding. Requires trained model at CONTRASTIVE_MODEL_PATH."""
+    """Runs the audio clip through the trained CNN to produce a 128-number fingerprint."""
     import torch
 
     from .contrastive_model import AudioEncoder
 
     global _contrastive_model
     if _contrastive_model is None:
+        # Load the trained network weights from disk the first time this is called
         if not CONTRASTIVE_MODEL_PATH.exists():
             raise FileNotFoundError(
                 f"Contrastive model not found at {CONTRASTIVE_MODEL_PATH}. "
@@ -60,18 +63,19 @@ def _extract_contrastive(waveform: np.ndarray, sr: int) -> list[float]:
         ckpt = torch.load(CONTRASTIVE_MODEL_PATH, map_location="cpu", weights_only=True)
         _contrastive_model = AudioEncoder(embedding_dim=ckpt["embedding_dim"])
         _contrastive_model.load_state_dict(ckpt["state_dict"])
-        _contrastive_model.eval()
+        _contrastive_model.eval()  # switch to inference mode (disables dropout etc.)
 
     if waveform.size == 0:
-        return [0.0] * _contrastive_model.embedding_dim
+        return [0.0] * _contrastive_model.embedding_dim  # blank fingerprint for empty audio
 
+    # Reshape the audio into the format the network expects: (batch=1, channels=1, samples)
     x = waveform.astype(np.float32)
     if x.ndim == 1:
         x = x[np.newaxis, np.newaxis, :]
     else:
         x = np.expand_dims(x, axis=0)
     t = torch.from_numpy(x)
-    with torch.no_grad():
+    with torch.no_grad():  # no gradient tracking needed — we are just predicting, not training
         emb = _contrastive_model(t)
     return emb.squeeze(0).numpy().tolist()
 

@@ -17,11 +17,13 @@ import librosa
 
 
 def pitch_shift(waveform: np.ndarray, sr: int, semitones: int) -> np.ndarray:
+    """Shift the pitch of the audio up or down by the given number of semitones."""
     shifted = librosa.effects.pitch_shift(waveform, sr=sr, n_steps=semitones)
     return shifted.astype(np.float32)
 
 
 def time_stretch(waveform: np.ndarray, rate: float) -> np.ndarray:
+    """Speed up or slow down the audio without changing its pitch (rate > 1 = faster)."""
     stretched = librosa.effects.time_stretch(waveform, rate=rate)
     return stretched.astype(np.float32)
 
@@ -29,31 +31,36 @@ def time_stretch(waveform: np.ndarray, rate: float) -> np.ndarray:
 def add_noise(
     waveform: np.ndarray, snr_db: float, rng: np.random.Generator | None = None
 ) -> np.ndarray:
+    """Add background noise at the specified signal-to-noise ratio (higher dB = cleaner audio)."""
     if rng is None:
         rng = np.random.default_rng(42)
-    signal_power = float(np.mean(waveform**2)) + 1e-12
+    # Calculate how loud the noise needs to be to achieve the target SNR
+    signal_power = float(np.mean(waveform**2)) + 1e-12  # small offset avoids log(0)
     noise_power = signal_power / (10 ** (snr_db / 10))
     noise = rng.normal(0.0, np.sqrt(noise_power), size=waveform.shape).astype(np.float32)
     return (waveform + noise).astype(np.float32)
 
 
 def crop_end(waveform: np.ndarray, sr: int, seconds: float) -> np.ndarray:
+    """Remove the specified number of seconds from the end of the clip."""
     crop_samples = int(round(seconds * sr))
     if crop_samples <= 0:
         return waveform
     if crop_samples >= waveform.shape[0]:
-        return waveform
+        return waveform  # don't crop more than the clip contains
     return waveform[:-crop_samples].astype(np.float32)
 
 
 def bandpass_filter(
     waveform: np.ndarray, sr: int, low_hz: float, high_hz: float, order: int = 5
 ) -> np.ndarray:
-    nyq = sr / 2.0
+    """Keep only the frequencies between low_hz and high_hz (simulates a low-quality speaker)."""
+    nyq = sr / 2.0  # Nyquist frequency — the highest frequency the sample rate can represent
+    # Clamp cut-off values to valid range before passing to the filter designer
     low = max(low_hz / nyq, 1e-6)
     high = min(high_hz / nyq, 1.0 - 1e-6)
-    sos = butter(order, [low, high], btype="band", output="sos")
-    filtered = sosfilt(sos, waveform).astype(np.float32)
+    sos = butter(order, [low, high], btype="band", output="sos")  # design the filter
+    filtered = sosfilt(sos, waveform).astype(np.float32)          # apply it to the audio
     return filtered
 
 
@@ -96,12 +103,15 @@ def lossy_mp3_roundtrip(waveform: np.ndarray, sr: int, bitrate_kbps: int) -> np.
 
 
 def normalise(waveform: np.ndarray) -> np.ndarray:
+    """Scale the audio so its loudest point is exactly 1.0 (prevents volume differences affecting results)."""
     peak = float(np.max(np.abs(waveform))) if waveform.size else 0.0
     if peak > 0:
         return (waveform / peak).astype(np.float32)
     return waveform.astype(np.float32)
 
 
+# The fixed list of distortions used for both training data generation and evaluation.
+# Each entry is (transform_type, severity_value).
 TRANSFORM_PRESETS = [
     ("pitch", -4),
     ("pitch", -2),
@@ -126,6 +136,7 @@ def apply_transform(
     value: float | int,
     rng: np.random.Generator | None = None,
 ) -> np.ndarray:
+    """Apply a named distortion to the audio clip. Used by both training and evaluation."""
     if kind == "pitch":
         return pitch_shift(waveform, sr, int(value))
     if kind == "tempo":

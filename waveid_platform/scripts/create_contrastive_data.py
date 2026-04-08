@@ -43,6 +43,8 @@ def _load_mono(path: Path, target_sr: int) -> tuple[np.ndarray, int]:
 
 
 def _fix_length(waveform: np.ndarray, target_len: int) -> np.ndarray:
+    """Trim or zero-pad a clip so it is exactly target_len samples long.
+    This ensures every clip in the dataset has an identical shape for batching."""
     if waveform.shape[0] >= target_len:
         return waveform[:target_len].astype(np.float32)
     pad = np.zeros(target_len - waveform.shape[0], dtype=np.float32)
@@ -109,10 +111,12 @@ def main() -> int:
     negatives_list: list[np.ndarray] = []
 
     for i in range(total_pairs):
+        # Pick a random clip to use as the anchor
         idx_a = rng.integers(0, len(all_segments))
         path_a, seg_a = all_segments[idx_a]
         anchor = normalise(seg_a)
 
+        # Create the positive by applying a random distortion to the anchor clip
         kind, value = TRANSFORM_PRESETS[rng.integers(0, len(TRANSFORM_PRESETS))]
         try:
             positive = normalise(
@@ -122,6 +126,7 @@ def main() -> int:
                 )
             )
         except Exception:
+            # Some transforms (e.g. MP3) can fail in certain environments — fall back to noise
             kind, value = "noise", 15.0
             positive = normalise(
                 _fix_length(
@@ -130,6 +135,7 @@ def main() -> int:
                 )
             )
 
+        # Pick a negative from a different track (ensure it's not the same file as the anchor)
         idx_neg = rng.integers(0, len(all_segments))
         while all_segments[idx_neg][0] == path_a:
             idx_neg = rng.integers(0, len(all_segments))

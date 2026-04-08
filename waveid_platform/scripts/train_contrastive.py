@@ -41,11 +41,12 @@ def main() -> int:
             print(f"Missing {p}. Run create_contrastive_data first.")
             return 1
 
+    # Load the pre-generated triplet arrays (created by create_contrastive_data.py)
     anchors = np.load(data_dir / "anchors.npy").astype(np.float32)
     positives = np.load(data_dir / "positives.npy").astype(np.float32)
     negatives = np.load(data_dir / "negatives.npy").astype(np.float32)
 
-    # (N, samples) -> (N, 1, samples)
+    # Add a channel dimension so the shape is (N, 1, samples) as expected by the 1D CNN
     anchors = anchors[:, np.newaxis, :]
     positives = positives[:, np.newaxis, :]
     negatives = negatives[:, np.newaxis, :]
@@ -55,8 +56,10 @@ def main() -> int:
         torch.from_numpy(positives),
         torch.from_numpy(negatives),
     )
+    # shuffle=True mixes up the triplets each epoch so the model doesn't learn their order
     loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True, num_workers=0)
 
+    # Use GPU if available, otherwise fall back to CPU
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = AudioEncoder(embedding_dim=args.embedding_dim).to(device)
     opt = torch.optim.Adam(model.parameters(), lr=args.lr)
@@ -64,18 +67,18 @@ def main() -> int:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     for epoch in range(args.epochs):
-        model.train()
+        model.train()  # switch to training mode (enables gradient tracking)
         total_loss = 0.0
         n_batches = 0
         for a, p, n in loader:
             a, p, n = a.to(device), p.to(device), n.to(device)
-            opt.zero_grad()
-            ea = model(a)
-            ep = model(p)
-            en = model(n)
+            opt.zero_grad()               # clear gradients from the previous step
+            ea = model(a)                 # fingerprint the anchor clips
+            ep = model(p)                 # fingerprint the positive (distorted) clips
+            en = model(n)                 # fingerprint the negative (wrong-track) clips
             loss = triplet_loss(ea, ep, en, margin=args.margin)
-            loss.backward()
-            opt.step()
+            loss.backward()               # compute how to adjust each weight
+            opt.step()                    # apply the adjustments
             total_loss += loss.item()
             n_batches += 1
 

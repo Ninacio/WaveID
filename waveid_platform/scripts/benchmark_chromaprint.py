@@ -75,18 +75,27 @@ def _decode_fingerprint_line(line: bytes) -> list[int]:
 
 
 def _match_fingerprints(a: list[int], b: list[int]) -> float:
+    """
+    Measure how similar two Chromaprint fingerprints are using sliding-window alignment.
+
+    Each fingerprint is a list of 32-bit integers encoding acoustic features.
+    Two integers 'match' if they differ in at most _MAX_BIT_ERROR bits (allowing for
+    minor audio variations). The function tries all time offsets within _MAX_ALIGN_OFFSET
+    and returns the fraction of frames that matched at the best offset.
+    """
     if not a or not b:
         return 0.0
     asize, bsize = len(a), len(b)
-    counts = [0] * (asize + bsize + 1)
+    counts = [0] * (asize + bsize + 1)  # one bucket per possible alignment offset
     for i in range(asize):
         jbegin = max(0, i - _MAX_ALIGN_OFFSET)
         jend = min(bsize, i + _MAX_ALIGN_OFFSET)
         for j in range(jbegin, jend):
+            # XOR two fingerprint frames; count set bits to measure difference
             if _popcount(a[i] ^ b[j]) <= _MAX_BIT_ERROR:
-                counts[i - j + bsize] += 1
-    topcount = max(counts)
-    return float(topcount) / float(min(asize, bsize))
+                counts[i - j + bsize] += 1  # record a match at this offset
+    topcount = max(counts)  # best alignment offset's match count
+    return float(topcount) / float(min(asize, bsize))  # fraction of frames matched
 
 
 def _fpcalc_command() -> str:
@@ -130,6 +139,7 @@ def chromaprint_query_rows(
 
 
 def fingerprint_file(path: Path, fpcalc: str, max_length: int) -> list[int]:
+    """Run fpcalc on an audio file and return its decoded Chromaprint fingerprint."""
     proc = subprocess.run(
         [fpcalc, "-length", str(max_length), str(path)],
         capture_output=True,

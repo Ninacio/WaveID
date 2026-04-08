@@ -1,5 +1,9 @@
 """
-In-memory catalogue storage for tracks and segments.
+In-memory catalogue for tracks and segments.
+
+Keeps a record of every ingested track (filename, duration, model version)
+and the segments extracted from it. State is persisted to catalogue.json
+so it survives server restarts.
 """
 
 from __future__ import annotations
@@ -56,8 +60,9 @@ def reset_state(persist: bool = False) -> None:
 
 
 def add_track(filename: str, duration: float, sr: int, model_version: str) -> str:
+    """Register a new track and return its unique ID."""
     _load_state()
-    track_id = uuid4().hex
+    track_id = uuid4().hex  # generate a random unique identifier for this track
     _tracks[track_id] = {
         "track_id": track_id,
         "filename": filename,
@@ -71,6 +76,7 @@ def add_track(filename: str, duration: float, sr: int, model_version: str) -> st
 
 
 def add_segments(track_id: str, segments: List[Dict[str, object]]) -> None:
+    """Record the segments extracted from a track, linking each to its fingerprint ID."""
     _load_state()
     if track_id not in _tracks:
         raise ValueError("Unknown track_id.")
@@ -121,7 +127,7 @@ def get_track(track_id: str) -> Dict[str, object] | None:
 
 
 def embedding_to_track_map(embedding_ids: List[str]) -> Dict[str, Dict[str, object]]:
-    """Map embedding IDs to track metadata for aggregation."""
+    """Given a list of fingerprint IDs from the search index, look up which track each belongs to."""
     _load_state()
     lookup: Dict[str, Dict[str, object]] = {}
     targets = set(embedding_ids)

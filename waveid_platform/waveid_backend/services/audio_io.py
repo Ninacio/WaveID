@@ -42,10 +42,12 @@ def load_audio_from_bytes(
     if not contents:
         raise ValueError("Uploaded file is empty.")
 
+    # Decode the raw file bytes into a waveform array, handling WAV and MP3 separately
     ext = Path(filename).suffix.lower()
     if ext == ".wav":
         waveform, sr = sf.read(io.BytesIO(contents), dtype="float32")
     elif ext == ".mp3":
+        # pydub handles MP3 decoding; then convert the integer samples to float
         audio = AudioSegment.from_file(io.BytesIO(contents), format="mp3")
         sr = audio.frame_rate
         channels = audio.channels
@@ -53,14 +55,16 @@ def load_audio_from_bytes(
         samples = np.array(audio.get_array_of_samples())
         if channels > 1:
             samples = samples.reshape((-1, channels))
-        max_val = float(1 << (8 * sample_width - 1))
+        max_val = float(1 << (8 * sample_width - 1))  # scale factor: int16 max = 32768
         waveform = samples.astype(np.float32) / max_val
     else:
         raise ValueError(f"Unsupported file extension: {ext}")
 
+    # Downmix stereo to mono by averaging the two channels
     if mono and waveform.ndim > 1:
         waveform = waveform.mean(axis=1)
 
+    # Resample to the target rate if needed (all processing uses a fixed 16 kHz)
     if sr != target_sr:
         waveform = librosa.resample(y=waveform, orig_sr=sr, target_sr=target_sr)
         sr = target_sr
@@ -75,6 +79,7 @@ def load_audio_from_bytes(
     if normalize is not None:
         normalise = normalize
 
+    # Peak-normalise: scale so the loudest sample is 1.0
     if normalise:
         peak = float(np.max(np.abs(waveform))) if waveform.size else 0.0
         if peak > 0:
