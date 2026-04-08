@@ -56,7 +56,7 @@ def main() -> int:
         torch.from_numpy(positives),
         torch.from_numpy(negatives),
     )
-    # shuffle=True mixes up the triplets each epoch so the model doesn't learn their order
+    # shuffle = True, mixes up the triplets each epoch so the model doesn't learn their order
     loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True, num_workers=0)
 
     # Use GPU if available, otherwise fall back to CPU

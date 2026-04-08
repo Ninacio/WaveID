@@ -132,8 +132,7 @@ def main() -> int:
     gtzan = args.gtzan_root.resolve()
     model = args.model_version or cfg.MODEL_VERSION
 
-    # The default top-k is tuned for a small index. With 50 tracks each having
-    # many segments, we need to retrieve more candidates before track-level aggregation.
+    # The default top-k is tuned for a small index. With 50 tracks each having many segments, we need to retrieve more candidates before track-level aggregation.
     original_emb_top_k = cfg.QUERY_EMBEDDING_TOP_K
     cfg.QUERY_EMBEDDING_TOP_K = 50
 

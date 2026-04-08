@@ -46,13 +46,28 @@ from .services.catalogue import (
     embedding_to_track_map,
     get_track,
     list_tracks,
+    reset_state as reset_catalogue,
 )
 from .services.embedding import extract_embedding
 from .services.search import add_reference_embeddings, query_similar
+from .services.search import reset_state as reset_search
 from .services.segmentation import segment_audio
 
 
 app = FastAPI(title="WaveID Backend", version="0.1.0")
+
+
+@app.on_event("startup")
+async def _startup_reset() -> None:
+    """Wipe all persisted state so the catalogue starts empty on every boot."""
+    from .config import INDEX_DIR
+    for filename in ("catalogue.json", "embeddings.npy", "embedding_ids.json"):
+        f = INDEX_DIR / filename
+        if f.exists():
+            f.unlink()
+    reset_catalogue(persist=False)
+    reset_search(persist=False)
+
 
 # Serve frontend static files
 _STATIC_DIR = Path(__file__).resolve().parent / "static"
@@ -286,3 +301,4 @@ async def catalogue_track(track_id: str) -> TrackDetail:
     if track is None:
         raise HTTPException(status_code=404, detail="Track not found.")
     return track
+

@@ -54,7 +54,7 @@ def _extract_contrastive(waveform: np.ndarray, sr: int) -> list[float]:
 
     global _contrastive_model
     if _contrastive_model is None:
-        # Load the trained network weights from disk the first time this is called
+        # load up the trained network weights from disk the first time this is called
         if not CONTRASTIVE_MODEL_PATH.exists():
             raise FileNotFoundError(
                 f"Contrastive model not found at {CONTRASTIVE_MODEL_PATH}. "

@@ -38,7 +38,7 @@ _IDS_PATH = INDEX_DIR / "embedding_ids.json"
 
 
 def _load_state() -> None:
-    """Load fingerprints from disk into memory if not already loaded."""
+    """Load up thefingerprints from disk into memory if not already loaded."""
     global _embeddings, _identifiers, _loaded
     if _loaded:
         return  # already loaded — nothing to do

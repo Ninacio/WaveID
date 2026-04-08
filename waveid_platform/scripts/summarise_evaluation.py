@@ -21,7 +21,7 @@ def _build_group_stats(
     rows: list[dict[str, str]],
     key_field: str,
 ) -> dict[str, dict[str, int]]:
-    """Count total queries, top-1 hits, and top-k hits for each unique value of key_field."""
+    """Count up the total queries, top-1 hits, and top-k hits for each unique value of key_field."""
     grouped: dict[str, dict[str, int]] = defaultdict(
         lambda: {"n": 0, "top1": 0, "topk": 0}
     )
