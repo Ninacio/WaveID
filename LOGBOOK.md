@@ -349,7 +349,7 @@ SUBMIT!!!
 | Research & Planning | Sep 2025 | Nov 2025 | Complete |
 | Prototype Development | Nov 2025 | Feb 2026 | Complete |
 | Evaluation | Feb 2026 | Mar 2026 | Complete |
-| Final Dissertation (D3) | Mar 2026 | Apr 2026 | In Progress (final edits and submission prep) |
+| Final Dissertation (D3) | Mar 2026 | Apr 2026 | Complete |
 
 ---
 
