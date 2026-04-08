@@ -33,7 +33,7 @@ ALLOWED_EXTENSIONS = {".wav", ".mp3", ".au"}
 # Embedding defaults
 EMBEDDING_DIM = 128
 MFCC_COEFFS = 20
-MODEL_VERSION = "baseline-v1"
+MODEL_VERSION = "contrastive-v1"
 CONTRASTIVE_MODEL_PATH = DATA_DIR / "models" / "contrastive_encoder.pt"
 
 # Query/search defaults

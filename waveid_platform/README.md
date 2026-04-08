@@ -136,7 +136,7 @@ curl -X POST "http://localhost:8000/ingest-track" \
 
 ### `POST /query`
 
-Identify an unknown audio clip. Upload a short clip; the server returns the top-k matched reference tracks with similarity scores.
+Identify an unknown audio clip. Upload a short clip; the server returns top-k matches ranked by a composite retrieval score (similarity + segment coverage + hit density).
 
 **Example:**
 
@@ -151,19 +151,27 @@ curl -X POST "http://localhost:8000/query" \
 ```json
 {
   "query_embedding": [0.1, -0.2, ...],
+  "confidence_gap": 0.41,
+  "confidence_label": "high",
   "matches": [
     {
       "track_id": "abc123-def456-...",
       "filename": "reference_track.wav",
       "score": 0.95,
+      "similarity": 0.89,
+      "coverage": 0.75,
       "hits": 3
     }
   ]
 }
 ```
 
-- `score`: Average similarity across matched segments (higher = better match).
+- `score`: Relative confidence over returned candidates (higher = stronger separation from alternatives, not a calibrated probability).
+- `similarity`: Mean cosine similarity across matched segments for that track.
+- `coverage`: Fraction of query segments that matched this track.
 - `hits`: Number of query segments that matched this track.
+- `confidence_gap`: Difference between top-1 and top-2 confidence.
+- `confidence_label`: `high`, `medium`, or `low` based on `confidence_gap`.
 
 ---
 
@@ -313,6 +321,27 @@ Run a multi-reference sweep:
 ```bash
 python -m scripts.run_evaluation_sweep --references-dir "path/to/genre_folder" --limit-references 3 --max-seconds 5 --max-query-segments 1 --limit-queries 3 --top-k 3 --fresh-index
 ```
+
+## Dissertation Documentation Notes (Short)
+
+Use these notes directly in Chapter 5 to keep reporting consistent and concise:
+
+- **Scoring interpretation:** Treat `score` as relative confidence across retrieved candidates, not an absolute per-track probability.
+- **Fixed protocol:** Report dataset split, transform set, catalogue size, and fixed query settings (`segment`, `hop`, `top_k`).
+- **Core metrics:** Include Top-1 and Top-k (Top-3 or Top-5), plus confidence gap summary.
+- **Error analysis:** Add 3-5 representative ambiguous/failure cases (e.g., same-genre swap under pitch shift) with brief cause notes.
+- **Limitations:** State that ranking is sensitive to catalogue composition and transformed clips can align with timbrally similar tracks.
+- **Reproducibility:** Include exact commands and key config values (`MODEL_VERSION`, `QUERY_EMBEDDING_TOP_K`, transform options).
+
+## Reproducibility Checklist (Public Repo)
+
+For results to be comparable with dissertation tables, keep these conditions fixed:
+
+- Run evaluation from scripts (`run_evaluation.py`, `run_eval_pipeline.py`, `run_evaluation_sweep.py`) with `--fresh-index`.
+- Keep the same model and key settings each run (`MODEL_VERSION`, segment/hop, `QUERY_EMBEDDING_TOP_K`, `top-k`).
+- Keep transform setup the same (same preset list, same severity levels, same clip limits).
+- Write down your tool versions (Python, `ffmpeg`, and `fpcalc` if using Chromaprint).
+- Treat UI confidence as demo-facing only; dissertation numbers should come from batch script outputs.
 
 ## Dataset Layout
 

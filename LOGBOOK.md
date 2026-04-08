@@ -311,56 +311,42 @@ Final-Year Project. Each week includes:
 ## April 2026 - Week 1 (01/04/2026 to 07/04/2026)
 
 ### ✔️ Completed This Week
-- Final dissertation PDF assembled (WaveID_Diss.pdf, March 2026 submission build)
+- Final dissertation PDF assembled
 - Draft email to supervisor summarising Chromaprint comparison, severity sweeps, MP3 in battery, multi-genre training, 50-track cross-genre results, and handbook housekeeping; includes pointers to abstract, intro, Chapter 7, and discussion where useful
 - Logbook brought up to date to Semester 2 completion
 - Contacted supervisor (Babis) for advice on dissertation content; confirmed code and frontend screenshots go in appendix, and that pseudocode algorithms are the appropriate form for crucial components in the main body
 - Enforced Main Body (Chapters 6-8) 20-page limit: condensed evaluation and discussion sections, moved extended Chromaprint all-genre table to Appendix B.3
 - Reviewed and improved layman-friendliness of Chapters 7 and 8
 - Enforced D1 Body (Chapters 1-4) ~14-page target: condensed Chapters 2, 3, and 4; moved success criteria table to Appendix A; removed duplicate and verbose content
-- Added three pseudocode algorithms to Chapter 6 (track ingestion, contrastive triplet training, query and similarity search); simplified to be accessible to a non-specialist reader
-- Created Appendix C with frontend screenshot placeholders and four representative Python code listings (MFCC embedding, AudioEncoder, triplet loss, cosine similarity search); all comments written in layman-friendly language
-- Added layman-friendly docstrings and inline comments to all service modules: `embedding.py`, `contrastive_model.py`, `search.py`, `transforms.py`, `audio_io.py`, `segmentation.py`, `catalogue.py`, `dataset_loader.py`
-- Added layman-friendly inline comments to all scripts: `train_contrastive.py`, `create_contrastive_data.py`, `run_evaluation.py`, `summarise_evaluation.py`, `benchmark_chromaprint.py`, `cross_genre_eval.py`
-- Git repository configured to exclude dissertation files; large embedding `.npy` files added to `.gitignore`; code committed and pushed to GitHub
+- Added three pseudocode algorithms to Chapter 6 (track ingestion, contrastive triplet training, query and similarity search).
+- Created Appendix C with frontend screenshot and four representative Python code listings (MFCC embedding, AudioEncoder, triplet loss, cosine similarity search); all comments written in layman-friendly language
+- Added layman-friendly docstrings to all service modules: `embedding.py`, `contrastive_model.py`, `search.py`, `transforms.py`, `audio_io.py`, `segmentation.py`, `catalogue.py`, `dataset_loader.py`
+
 
 ### ⚠️ Challenges / Issues
-- Git push failed due to large `.npy` embedding files exceeding GitHub's per-file limit
+
 
 ### 💡 Solutions / Decisions Made
-- Added `waveid_platform/data/embeddings/` to `.gitignore` and reset the commit before re-pushing
+
 
 ### 📌 Next Steps
-- Replace frontend screenshot placeholders in Appendix C with real screenshots showing ingested tracks and query results
-- Sign and date the Declaration page on the final compiled PDF
-- Final PDF recompilation and page count verification before submission
+
 
 ### 👥 Supervisor Meeting
-- Date: TBD (email sent requesting feedback)
+- Date: (email sent requesting feedback)
 - Key points: Confirmed appendix placement for screenshots and code; pseudocode only in main body
 - Actions: Implemented all advice; awaiting further feedback
 
 ## April 2026 - Week 2 (08/04/2026)
 
 ### ✔️ Completed This Week
-- Captured frontend screenshots and saved to `Figures/` directory
-- Replaced all three placeholder `\fbox` blocks in Appendix C with `\includegraphics` pointing to actual PNG screenshots
-- Fixed figure float placement in Appendix C: changed `[ht]` to `[H]` and added `\clearpage` before code listings to prevent Figure C.3 from drifting into Listing C.1
-- Replaced all em dashes (`---`) used as punctuation throughout the dissertation with ` - ` per style preference
-- Fixed chapter reference inconsistency in the Dissertation Structure paragraph of Chapter 1: Chapters 9, 10, and 11 now use the same `Chapter X (\ref{...})` format as Chapters 2-8
-- Added a FastAPI startup event to reset the catalogue on every server boot, preventing stale ingested tracks from persisting across demo sessions
+Polishong documentation and frontend.
 
 ### ⚠️ Challenges / Issues
-- Browser caching prevented updated JavaScript from loading after API changes
-- FastAPI route `GET /catalogue/{track_id}` intercepted a reset endpoint before it could be matched, causing 405 errors
 
 ### 💡 Solutions / Decisions Made
-- Used hard-refresh (`Ctrl+Shift+R`) to bypass browser cache
-- Moved reset logic to a `@app.on_event("startup")` handler that physically deletes the persisted catalogue and embedding files on boot, eliminating the routing conflict
 
 ### 📌 Next Steps
-- Complete demo with real audio files and replace empty-state screenshots with result screenshots
-- Final PDF recompilation and submission prep
 
 # 🏁 Project Timeline Overview
 

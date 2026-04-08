@@ -80,7 +80,10 @@ if _STATIC_DIR.exists():
         index_path = _STATIC_DIR / "index.html"
         if index_path.exists():
             from fastapi.responses import FileResponse
-            return FileResponse(index_path)
+            return FileResponse(
+                index_path,
+                headers={"Cache-Control": "no-store, no-cache, must-revalidate"},
+            )
         return {"message": "WaveID API", "docs": "/docs"}
 
 
@@ -195,12 +198,16 @@ class QueryMatch(BaseModel):
     track_id: str
     filename: str
     score: float
+    similarity: float
+    coverage: float
     hits: int
 
 
 class QueryResponse(BaseModel):
     query_embedding: list[float]
     matches: list[QueryMatch]
+    confidence_gap: float
+    confidence_label: str
 
 
 @app.post("/query", response_model=QueryResponse)
@@ -240,8 +247,9 @@ async def query_clip(file: UploadFile = File(...)) -> QueryResponse:
         segment_embeddings = [extract_embedding(waveform, sr)]
     query_embedding = np.mean(np.array(segment_embeddings, dtype=float), axis=0).tolist()
 
-    track_scores: dict[str, dict[str, float | int | str]] = {}
-    for segment_embedding in segment_embeddings:
+    track_scores: dict[str, dict[str, float | int | str | set[int]]] = {}
+    total_query_segments = max(len(segment_embeddings), 1)
+    for segment_idx, segment_embedding in enumerate(segment_embeddings):
         segment_matches = query_similar(segment_embedding, top_k=QUERY_EMBEDDING_TOP_K)
         id_map = embedding_to_track_map([match["id"] for match in segment_matches])
         for match in segment_matches:
@@ -258,34 +266,98 @@ async def query_clip(file: UploadFile = File(...)) -> QueryResponse:
                     "filename": str(meta["filename"]),
                     "score_sum": 0.0,
                     "hits": 0,
+                    "matched_segments": set(),
                 },
             )
             row["score_sum"] = float(row["score_sum"]) + score
             row["hits"] = int(row["hits"]) + 1
+            cast_segments = row.get("matched_segments", set())
+            if isinstance(cast_segments, set):
+                cast_segments.add(segment_idx)
+                row["matched_segments"] = cast_segments
 
-    ranked_matches: list[QueryMatch] = []
+    ranked_rows: list[dict[str, float | int | str]] = []
     for row in track_scores.values():
         hits = int(row["hits"])
         avg_score = float(row["score_sum"]) / max(hits, 1)
         if avg_score < MIN_TRACK_SCORE:
             continue
-        ranked_matches.append(
-            QueryMatch(
-                track_id=str(row["track_id"]),
-                filename=str(row["filename"]),
-                score=avg_score,
-                hits=hits,
-            )
+        matched_segments = row.get("matched_segments", set())
+        coverage = (
+            len(matched_segments) / total_query_segments
+            if isinstance(matched_segments, set)
+            else 0.0
         )
-    ranked_matches.sort(key=lambda item: (item.score, item.hits), reverse=True)
-    matches = ranked_matches[:QUERY_TRACK_TOP_K]
+        density = hits / max(total_query_segments * QUERY_EMBEDDING_TOP_K, 1)
+        composite_score = (0.65 * avg_score) + (0.3 * coverage) + (0.05 * density)
+        ranked_rows.append(
+            {
+                "track_id": str(row["track_id"]),
+                "filename": str(row["filename"]),
+                "similarity": avg_score,
+                "coverage": coverage,
+                "hits": hits,
+                "composite": composite_score,
+            }
+        )
+
+    ranked_rows.sort(
+        key=lambda item: (
+            float(item["composite"]),
+            float(item["similarity"]),
+            int(item["hits"]),
+        ),
+        reverse=True,
+    )
+    top_rows = ranked_rows[:QUERY_TRACK_TOP_K]
+
+    if top_rows:
+        logits = np.array([float(item["composite"]) for item in top_rows], dtype=float)
+        logits = logits - np.max(logits)
+        temperature = 0.035
+        probs = np.exp(logits / temperature)
+        denom = float(np.sum(probs))
+        confidences = probs / max(denom, 1e-12)
+    else:
+        confidences = np.array([], dtype=float)
+
+    matches = [
+        QueryMatch(
+            track_id=str(item["track_id"]),
+            filename=str(item["filename"]),
+            score=float(confidences[idx]) if idx < len(confidences) else 0.0,
+            similarity=float(item["similarity"]),
+            coverage=float(item["coverage"]),
+            hits=int(item["hits"]),
+        )
+        for idx, item in enumerate(top_rows)
+    ]
+
+    if len(confidences) >= 2:
+        confidence_gap = float(confidences[0] - confidences[1])
+    elif len(confidences) == 1:
+        confidence_gap = float(confidences[0])
+    else:
+        confidence_gap = 0.0
+
+    if confidence_gap >= 0.35:
+        confidence_label = "high"
+    elif confidence_gap >= 0.18:
+        confidence_label = "medium"
+    else:
+        confidence_label = "low"
 
     QUERY_DIR.mkdir(parents=True, exist_ok=True)
     query_id = uuid4().hex
     query_path = QUERY_DIR / f"{query_id}{Path(file.filename).suffix.lower()}"
     query_path.write_bytes(contents)
 
-    return QueryResponse(query_embedding=query_embedding, matches=matches)
+    return QueryResponse(
+        query_embedding=query_embedding,
+        matches=matches,
+        confidence_gap=confidence_gap,
+        confidence_label=confidence_label,
+    )
 
 
 @app.get("/catalogue", response_model=list[CatalogueTrack])
@@ -301,4 +373,17 @@ async def catalogue_track(track_id: str) -> TrackDetail:
     if track is None:
         raise HTTPException(status_code=404, detail="Track not found.")
     return track
+
+
+@app.post("/reset-catalogue")
+async def reset_catalogue_endpoint() -> dict[str, str]:
+    """Wipe all ingested tracks and embeddings, returning the catalogue to empty."""
+    reset_catalogue(persist=True)
+    reset_search(persist=True)
+    for folder in (REFERENCE_DIR, QUERY_DIR):
+        if folder.exists():
+            for f in folder.iterdir():
+                if f.is_file():
+                    f.unlink()
+    return {"message": "Catalogue cleared."}
 
