@@ -853,15 +853,17 @@
       const centerY = 160;
       const count = 92;
       const spacing = width / (count - 1);
+      group.innerHTML = '';
 
       audioBars = [];
       audioBarBase = [];
       for (let i = 0; i < count; i += 1) {
         const t = i / (count - 1);
-        const burst = 150 * Math.exp(-Math.pow((t - 0.2) / 0.07, 2));
-        const tail = 5 + 20 * Math.exp(-t * 3.2);
-        const ripple = 6 * Math.abs(Math.sin(i * 0.66));
-        const baseAmp = Math.max(5, burst + tail + ripple);
+        const leftBurst = 128 * Math.exp(-Math.pow((t - 0.18) / 0.085, 2));
+        const rightBurst = 128 * Math.exp(-Math.pow((t - 0.82) / 0.085, 2));
+        const midBody = 26 * Math.exp(-Math.pow((t - 0.5) / 0.24, 2));
+        const floor = 11 + 8 * Math.abs(Math.sin(i * 0.45));
+        const baseAmp = Math.max(10, leftBurst + rightBurst + midBody + floor);
         const x = i * spacing;
 
         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
@@ -896,16 +898,19 @@
       const centerY = 160;
       const elapsed = now - audioAnimStart;
       audioEnergy += (audioEnergyTarget - audioEnergy) * 0.1;
-      const bpm = 118 + (audioEnergy - 0.95) * 70;
+      const bpm = 122 + (audioEnergy - 0.95) * 74;
       const beat = (elapsed / (60000 / bpm)) * Math.PI * 2;
       const beatPulse = 0.62 + (0.55 + 0.5 * audioEnergy) * ((Math.sin(beat) + 1) / 2);
 
       for (let i = 0; i < audioBars.length; i += 1) {
         const base = audioBarBase[i];
-        const flowA = 0.76 + 0.42 * Math.sin(elapsed / 130 + i * 0.33);
-        const flowB = 0.78 + 0.34 * Math.sin(elapsed / 80 + i * 0.2);
+        const t = i / Math.max(audioBars.length - 1, 1);
+        const flowA = 0.74 + 0.46 * Math.sin(elapsed / 130 + i * 0.33);
+        const flowB = 0.76 + 0.38 * Math.sin(elapsed / 82 + i * 0.2);
+        const sideWave = 0.78 + 0.42 * ((Math.sin(elapsed / 108 + t * 14) + 1) / 2);
+        const crossWave = 0.8 + 0.36 * ((Math.sin(elapsed / 170 + (1 - t) * 10) + 1) / 2);
         const energyScale = 0.55 + audioEnergy * 0.95;
-        const amp = Math.min(152, Math.max(4, base * beatPulse * flowA * flowB * energyScale));
+        const amp = Math.min(156, Math.max(6, base * beatPulse * flowA * flowB * sideWave * crossWave * energyScale));
         const line = audioBars[i];
         line.setAttribute('y1', (centerY - amp).toFixed(2));
         line.setAttribute('y2', (centerY + amp).toFixed(2));
