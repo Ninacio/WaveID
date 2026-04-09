@@ -249,9 +249,7 @@ Final-Year Project. Each week includes:
 - Decisions/questions: I will keep batch ingestion offline and use the API only for query clips; next step is to add evaluation tooling.
 
 ### 👥 Supervisor Meeting
-- Date: N/A
-- Key points: N/A
-- Actions: N/A
+- Date: 26/01/6
 
 ## Semester 2 - Weeks 4–8 (02/02/2026 to 08/03/2026)
 
@@ -277,9 +275,7 @@ Final-Year Project. Each week includes:
 - Decisions/questions: How to present per-genre 100% vs cross-genre ~54% without overstating real-world performance
 
 ### 👥 Supervisor Meeting
-- Date: N/A
-- Key points: N/A
-- Actions: N/A
+- Date: 02/02/26 - 02/03/26
 
 ## Semester 2 - Weeks 9–11 (09/03/2026 to 29/03/2026)
 
@@ -304,9 +300,7 @@ Final-Year Project. Each week includes:
 - Decisions/questions: Optional supervisor email with PDF table/figure pointers (Chapter 7 and Appendix B)
 
 ### 👥 Supervisor Meeting
-- Date: N/A
-- Key points: N/A
-- Actions: N/A
+- Date: 13/03/06
 
 ## April 2026 - Week 1 (01/04/2026 to 07/04/2026)
 
@@ -340,14 +334,14 @@ Final-Year Project. Each week includes:
 ## April 2026 - Week 2 (08/04/2026)
 
 ### ✔️ Completed This Week
-Polishong documentation and frontend.
+Polishong documentation and frontend (UI overhaul)
 
 ### ⚠️ Challenges / Issues
 
 ### 💡 Solutions / Decisions Made
 
 ### 📌 Next Steps
-
+SUBMIT!!!
 # 🏁 Project Timeline Overview
 
 | Phase | Start | End | Status |
@@ -355,7 +349,7 @@ Polishong documentation and frontend.
 | Research & Planning | Sep 2025 | Nov 2025 | Complete |
 | Prototype Development | Nov 2025 | Feb 2026 | Complete |
 | Evaluation | Feb 2026 | Mar 2026 | Complete |
-| Final Dissertation (D3) | Mar 2026 | Apr 2026 | In Progress (final edits and submission prep) |
+| Final Dissertation (D3) | Mar 2026 | Apr 2026 | Complete |
 
 ---
 
