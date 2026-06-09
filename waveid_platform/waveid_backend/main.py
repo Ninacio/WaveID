@@ -6,39 +6,51 @@ This module implements a minimal FastAPI application for the WaveID
 prototype. The application exposes endpoints for ingesting reference
 tracks and identifying unknown audio clips. The heavy lifting (audio
 preprocessing, embedding extraction, vector indexing and search) is
-encapsulated in service modules. At this stage the implementation
-provides stubs and placeholders where the full functionality can be
-added later. The goal is to provide a working scaffold that can be
-extended in subsequent iterations.
+encapsulated in service modules.
 
 Run this application with:
     uvicorn waveid_backend.main:app --reload
 """
 
+from __future__ import annotations
+
+import logging
 from pathlib import Path
 from uuid import uuid4
 
-from fastapi import FastAPI, UploadFile, File, HTTPException
-from fastapi.staticfiles import StaticFiles
 import numpy as np
-from pydantic import BaseModel
+from fastapi import Depends, FastAPI, File, Header, HTTPException, Request, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel, Field
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
 from .config import (
-    ALLOWED_EXTENSIONS,
+    API_KEY_CONFIGURED,
+    CORS_ORIGINS,
     HOP_SECONDS,
     MAX_DURATION_SECONDS,
     MAX_UPLOAD_MB,
-    MODEL_VERSION,
     MIN_TRACK_SCORE,
+    MODEL_VERSION,
     MONO,
     NORMALIZE,
     QUERY_DIR,
     QUERY_EMBEDDING_TOP_K,
     QUERY_TRACK_TOP_K,
+    RATE_LIMIT_AUTH,
+    RATE_LIMIT_DEFAULT,
     REFERENCE_DIR,
+    REQUIRE_API_KEY,
+    RESET_ON_STARTUP,
     SAMPLE_RATE,
     SEGMENT_SECONDS,
 )
+from .middleware.security_headers import SecurityHeadersMiddleware
+from .security.auth import verify_api_key_value
+from .security.validation import read_bounded_upload, validate_track_id, validate_upload
 from .services.audio_io import load_audio_from_bytes
 from .services.catalogue import (
     add_segments,
@@ -53,14 +65,50 @@ from .services.search import add_reference_embeddings, query_similar
 from .services.search import reset_state as reset_search
 from .services.segmentation import segment_audio
 
+logger = logging.getLogger(__name__)
 
-app = FastAPI(title="WaveID Backend", version="0.1.0")
+limiter = Limiter(key_func=get_remote_address, default_limits=[RATE_LIMIT_DEFAULT])
+
+app = FastAPI(
+    title="WaveID Backend",
+    version="0.2.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SecurityHeadersMiddleware)
+
+if CORS_ORIGINS:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=CORS_ORIGINS,
+        allow_credentials=True,
+        allow_methods=["GET", "POST"],
+        allow_headers=["Authorization", "Content-Type", "X-API-Key"],
+    )
 
 
 @app.on_event("startup")
-async def _startup_reset() -> None:
-    """Wipe all persisted state so the catalogue starts empty on every boot."""
+async def _startup() -> None:
+    if API_KEY_CONFIGURED:
+        logger.info("API key authentication is configured.")
+    elif REQUIRE_API_KEY:
+        logger.warning(
+            "WAVEID_REQUIRE_API_KEY is true but WAVEID_API_KEY is not set. "
+            "Protected routes will return 503."
+        )
+    else:
+        logger.warning(
+            "WAVEID_API_KEY is not set. Authentication routes are disabled; "
+            "ingest/reset are open (set WAVEID_REQUIRE_API_KEY=true for production)."
+        )
+
+    if not RESET_ON_STARTUP:
+        return
+
     from .config import INDEX_DIR
+
     for filename in ("catalogue.json", "embeddings.npy", "embedding_ids.json"):
         f = INDEX_DIR / filename
         if f.exists():
@@ -69,17 +117,18 @@ async def _startup_reset() -> None:
     reset_search(persist=False)
 
 
-# Serve frontend static files
 _STATIC_DIR = Path(__file__).resolve().parent / "static"
 if _STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(_STATIC_DIR)), name="static")
 
     @app.get("/")
-    async def root():
+    @limiter.limit(RATE_LIMIT_DEFAULT)
+    async def root(request: Request):
         """Serve the minimal frontend UI."""
         index_path = _STATIC_DIR / "index.html"
         if index_path.exists():
             from fastapi.responses import FileResponse
+
             return FileResponse(
                 index_path,
                 headers={"Cache-Control": "no-store, no-cache, must-revalidate"},
@@ -112,88 +161,6 @@ class TrackDetail(CatalogueTrack):
     segments: list[SegmentInfo]
 
 
-def _validate_upload(file: UploadFile, contents: bytes) -> None:
-    if not file.filename:
-        raise HTTPException(status_code=400, detail="No file uploaded")
-    ext = Path(file.filename).suffix.lower()
-    if ext not in ALLOWED_EXTENSIONS:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Unsupported file type: {ext}. Allowed: {sorted(ALLOWED_EXTENSIONS)}",
-        )
-    max_bytes = MAX_UPLOAD_MB * 1024 * 1024
-    if len(contents) > max_bytes:
-        raise HTTPException(status_code=413, detail="Uploaded file is too large.")
-
-
-@app.get("/health")
-async def health() -> dict[str, str]:
-    """Simple health check endpoint.
-
-    Returns a JSON response with a status message. Use this endpoint
-    to verify that the server is running.
-    """
-    return {"status": "ok"}
-
-
-@app.post("/ingest-track", response_model=IngestResponse)
-async def ingest_track(file: UploadFile = File(...)) -> IngestResponse:
-    """Ingest a reference track into the catalogue.
-
-    The uploaded audio file is read, preprocessed and segmented. Each
-    segment is converted into an embedding and added to the vector index.
-    At this stage the implementation uses a placeholder for the audio
-    processing pipeline and returns a fixed number of segments.
-
-    Args:
-        file: Uploaded audio file (MP3/WAV).
-
-    Returns:
-        IngestResponse: Confirmation message with number of segments.
-    """
-    contents = await file.read()
-    _validate_upload(file, contents)
-
-    try:
-        waveform, sr = load_audio_from_bytes(
-            contents,
-            filename=file.filename,
-            target_sr=SAMPLE_RATE,
-            mono=MONO,
-            normalize=NORMALIZE,
-            max_duration_seconds=MAX_DURATION_SECONDS,
-        )
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
-
-    duration_seconds = float(waveform.size / sr) if sr else 0.0
-    track_id = add_track(file.filename, duration_seconds, sr, MODEL_VERSION)
-    segments = segment_audio(waveform, sr, SEGMENT_SECONDS, HOP_SECONDS)
-
-    embeddings = [extract_embedding(segment.samples, sr) for segment in segments]
-    embedding_ids = add_reference_embeddings(embeddings)
-    segment_records = [
-        {
-            "start_time": segment.start_time,
-            "end_time": segment.end_time,
-            "embedding_id": embedding_id,
-        }
-        for segment, embedding_id in zip(segments, embedding_ids)
-    ]
-    add_segments(track_id, segment_records)
-
-    REFERENCE_DIR.mkdir(parents=True, exist_ok=True)
-    reference_path = REFERENCE_DIR / f"{track_id}{Path(file.filename).suffix.lower()}"
-    reference_path.write_bytes(contents)
-
-    return IngestResponse(
-        message=f"Ingested {file.filename}",
-        track_id=track_id,
-        num_segments=len(segments),
-        duration_seconds=duration_seconds,
-    )
-
-
 class QueryMatch(BaseModel):
     track_id: str
     filename: str
@@ -210,28 +177,131 @@ class QueryResponse(BaseModel):
     confidence_label: str
 
 
-@app.post("/query", response_model=QueryResponse)
-async def query_clip(file: UploadFile = File(...)) -> QueryResponse:
-    """Identify an unknown audio clip.
+class AuthVerifyRequest(BaseModel):
+    api_key: str = Field(..., min_length=8, max_length=512)
 
-    This endpoint accepts a short audio clip, extracts its embedding
-    and searches the catalogue for similar embeddings. The response
-    contains the query embedding and a list of matched reference tracks
-    along with their similarity scores.
 
-    Args:
-        file: Uploaded audio clip.
+class AuthVerifyResponse(BaseModel):
+    authenticated: bool
+    message: str
 
-    Returns:
-        QueryResponse: Query embedding and search results.
+
+def _require_api_key_when_configured(
+    x_api_key: str | None = Header(default=None, alias="X-API-Key"),
+    authorization: str | None = Header(default=None),
+) -> None:
+    """Require API key only when WAVEID_API_KEY is configured."""
+    if not API_KEY_CONFIGURED:
+        return
+    from .security.auth import _extract_api_key
+
+    provided = _extract_api_key(x_api_key, authorization)
+    if not verify_api_key_value(provided):
+        raise HTTPException(status_code=401, detail="Invalid or missing API key.")
+
+
+@app.get("/health")
+@limiter.limit(RATE_LIMIT_DEFAULT)
+async def health(request: Request) -> dict[str, str]:
+    """Simple health check endpoint."""
+    return {"status": "ok"}
+
+
+@app.post("/auth/verify", response_model=AuthVerifyResponse)
+@limiter.limit(RATE_LIMIT_AUTH)
+async def auth_verify(request: Request, body: AuthVerifyRequest) -> AuthVerifyResponse:
     """
-    contents = await file.read()
-    _validate_upload(file, contents)
+    Verify an API key. Limited to 5 attempts per 15 minutes per client IP.
+    """
+    if not API_KEY_CONFIGURED:
+        raise HTTPException(
+            status_code=503,
+            detail="Authentication is not configured on this server.",
+        )
+
+    if verify_api_key_value(body.api_key.strip()):
+        return AuthVerifyResponse(authenticated=True, message="API key is valid.")
+
+    raise HTTPException(status_code=401, detail="Invalid API key.")
+
+
+@app.post("/ingest-track", response_model=IngestResponse)
+@limiter.limit(RATE_LIMIT_DEFAULT)
+async def ingest_track(
+    request: Request,
+    file: UploadFile = File(...),
+) -> IngestResponse:
+    """Ingest a reference track into the catalogue."""
+    if REQUIRE_API_KEY and API_KEY_CONFIGURED:
+        from .security.auth import _extract_api_key
+
+        provided = _extract_api_key(
+            request.headers.get("X-API-Key"),
+            request.headers.get("Authorization"),
+        )
+        if not verify_api_key_value(provided):
+            raise HTTPException(status_code=401, detail="Invalid or missing API key.")
+
+    max_bytes = MAX_UPLOAD_MB * 1024 * 1024
+    contents = await read_bounded_upload(file, max_bytes)
+    safe_filename = validate_upload(file.filename or "", contents)
 
     try:
         waveform, sr = load_audio_from_bytes(
             contents,
-            filename=file.filename,
+            filename=safe_filename,
+            target_sr=SAMPLE_RATE,
+            mono=MONO,
+            normalize=NORMALIZE,
+            max_duration_seconds=MAX_DURATION_SECONDS,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    duration_seconds = float(waveform.size / sr) if sr else 0.0
+    track_id = add_track(safe_filename, duration_seconds, sr, MODEL_VERSION)
+    segments = segment_audio(waveform, sr, SEGMENT_SECONDS, HOP_SECONDS)
+
+    embeddings = [extract_embedding(segment.samples, sr) for segment in segments]
+    embedding_ids = add_reference_embeddings(embeddings)
+    segment_records = [
+        {
+            "start_time": segment.start_time,
+            "end_time": segment.end_time,
+            "embedding_id": embedding_id,
+        }
+        for segment, embedding_id in zip(segments, embedding_ids)
+    ]
+    add_segments(track_id, segment_records)
+
+    REFERENCE_DIR.mkdir(parents=True, exist_ok=True)
+    ext = Path(safe_filename).suffix.lower()
+    reference_path = REFERENCE_DIR / f"{track_id}{ext}"
+    reference_path.write_bytes(contents)
+
+    return IngestResponse(
+        message=f"Ingested {safe_filename}",
+        track_id=track_id,
+        num_segments=len(segments),
+        duration_seconds=duration_seconds,
+    )
+
+
+@app.post("/query", response_model=QueryResponse)
+@limiter.limit(RATE_LIMIT_DEFAULT)
+async def query_clip(
+    request: Request,
+    file: UploadFile = File(...),
+) -> QueryResponse:
+    """Identify an unknown audio clip."""
+    max_bytes = MAX_UPLOAD_MB * 1024 * 1024
+    contents = await read_bounded_upload(file, max_bytes)
+    safe_filename = validate_upload(file.filename or "", contents)
+
+    try:
+        waveform, sr = load_audio_from_bytes(
+            contents,
+            filename=safe_filename,
             target_sr=SAMPLE_RATE,
             mono=MONO,
             normalize=NORMALIZE,
@@ -242,7 +312,9 @@ async def query_clip(file: UploadFile = File(...)) -> QueryResponse:
 
     query_segments = segment_audio(waveform, sr, SEGMENT_SECONDS, HOP_SECONDS)
     if query_segments:
-        segment_embeddings = [extract_embedding(segment.samples, sr) for segment in query_segments]
+        segment_embeddings = [
+            extract_embedding(segment.samples, sr) for segment in query_segments
+        ]
     else:
         segment_embeddings = [extract_embedding(waveform, sr)]
     query_embedding = np.mean(np.array(segment_embeddings, dtype=float), axis=0).tolist()
@@ -349,7 +421,8 @@ async def query_clip(file: UploadFile = File(...)) -> QueryResponse:
 
     QUERY_DIR.mkdir(parents=True, exist_ok=True)
     query_id = uuid4().hex
-    query_path = QUERY_DIR / f"{query_id}{Path(file.filename).suffix.lower()}"
+    ext = Path(safe_filename).suffix.lower()
+    query_path = QUERY_DIR / f"{query_id}{ext}"
     query_path.write_bytes(contents)
 
     return QueryResponse(
@@ -361,23 +434,30 @@ async def query_clip(file: UploadFile = File(...)) -> QueryResponse:
 
 
 @app.get("/catalogue", response_model=list[CatalogueTrack])
-async def catalogue() -> list[CatalogueTrack]:
+@limiter.limit(RATE_LIMIT_DEFAULT)
+async def catalogue(request: Request) -> list[CatalogueTrack]:
     """List ingested tracks and segment counts."""
     return list_tracks()
 
 
 @app.get("/catalogue/{track_id}", response_model=TrackDetail)
-async def catalogue_track(track_id: str) -> TrackDetail:
+@limiter.limit(RATE_LIMIT_DEFAULT)
+async def catalogue_track(request: Request, track_id: str) -> TrackDetail:
     """Get metadata and segment list for a track."""
-    track = get_track(track_id)
+    safe_id = validate_track_id(track_id)
+    track = get_track(safe_id)
     if track is None:
         raise HTTPException(status_code=404, detail="Track not found.")
     return track
 
 
 @app.post("/reset-catalogue")
-async def reset_catalogue_endpoint() -> dict[str, str]:
-    """Wipe all ingested tracks and embeddings, returning the catalogue to empty."""
+@limiter.limit(RATE_LIMIT_DEFAULT)
+async def reset_catalogue_endpoint(
+    request: Request,
+    _: None = Depends(_require_api_key_when_configured),
+) -> dict[str, str]:
+    """Wipe all ingested tracks and embeddings. Requires a valid API key."""
     reset_catalogue(persist=True)
     reset_search(persist=True)
     for folder in (REFERENCE_DIR, QUERY_DIR):
@@ -386,4 +466,3 @@ async def reset_catalogue_endpoint() -> dict[str, str]:
                 if f.is_file():
                     f.unlink()
     return {"message": "Catalogue cleared."}
-

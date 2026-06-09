@@ -2,6 +2,17 @@ datasets/
 *.wav
 *.mp3
 
+# Secrets and local environment (never commit)
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+**/firebase-credentials.json
+**/*credentials*.json
+**/*secret*
+
 # Virtual environment (never commit)
 .venv/
 venv/
