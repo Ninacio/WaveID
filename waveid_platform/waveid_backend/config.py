@@ -50,6 +50,16 @@ CONTRASTIVE_MODEL_PATH = Path(
 QUERY_TRACK_TOP_K = int(os.getenv("WAVEID_QUERY_TRACK_TOP_K", "5"))
 QUERY_EMBEDDING_TOP_K = int(os.getenv("WAVEID_QUERY_EMBEDDING_TOP_K", "5"))
 MIN_TRACK_SCORE = float(os.getenv("WAVEID_MIN_TRACK_SCORE", "0.15"))
+# Minimum raw similarity gap between #1 and #2 for a "high confidence" identification.
+MIN_SIMILARITY_GAP = float(os.getenv("WAVEID_MIN_SIMILARITY_GAP", "0.04"))
+# Raw cosine similarity required for a "strong" same-song match label.
+STRONG_MATCH_SIMILARITY = float(os.getenv("WAVEID_STRONG_MATCH_SIMILARITY", "0.97"))
+
+# Duplicate detection: when ingesting, warn if an existing track exceeds this
+# average similarity against the new track's sampled segments.
+DUPLICATE_THRESHOLD = float(os.getenv("WAVEID_DUPLICATE_THRESHOLD", "0.9"))
+# Max segments sampled from a new track when checking for duplicates.
+DUPLICATE_SAMPLE_SEGMENTS = int(os.getenv("WAVEID_DUPLICATE_SAMPLE_SEGMENTS", "32"))
 
 # Security / auth (never commit real values; use .env locally)
 API_KEY: str = os.getenv("WAVEID_API_KEY", "").strip()

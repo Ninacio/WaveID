@@ -38,3 +38,7 @@ waveid_platform/data/query/*
 !waveid_platform/data/query/.gitkeep
 waveid_platform/data/reference/*
 !waveid_platform/data/reference/.gitkeep
+
+# Claude Code local artifacts (not part of the project)
+CLAUDE.md
+.claude/

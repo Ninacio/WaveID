@@ -106,6 +106,33 @@ def add_reference_embeddings(
     return stored_ids
 
 
+def remove_embeddings(embedding_ids: List[str]) -> int:
+    """Remove embeddings from the index by identifier.
+
+    Returns the number of embeddings removed.
+    """
+    global _embeddings, _identifiers
+    _load_state()
+    targets = set(embedding_ids)
+    if not targets:
+        return 0
+
+    kept_embeddings: List[np.ndarray] = []
+    kept_identifiers: List[str] = []
+    removed = 0
+    for vec, ident in zip(_embeddings, _identifiers):
+        if ident in targets:
+            removed += 1
+            continue
+        kept_embeddings.append(vec)
+        kept_identifiers.append(ident)
+
+    _embeddings = kept_embeddings
+    _identifiers = kept_identifiers
+    _save_state()
+    return removed
+
+
 def query_similar(query_embedding: list[float], top_k: int = 5) -> List[Dict[str, float]]:
     """
     Compares the query fingerprint against every stored reference fingerprint

@@ -59,7 +59,49 @@ def reset_state(persist: bool = False) -> None:
         _save_state()
 
 
-def add_track(filename: str, duration: float, sr: int, model_version: str) -> str:
+_METADATA_FIELDS = ("title", "artist", "isrc", "tags")
+
+
+def _normalise_metadata(metadata: Dict[str, object] | None) -> Dict[str, object]:
+    """Coerce user-supplied metadata into a consistent shape."""
+    meta = metadata or {}
+    tags = meta.get("tags", [])
+    if isinstance(tags, str):
+        tags = [t.strip() for t in tags.split(",") if t.strip()]
+    elif isinstance(tags, list):
+        tags = [str(t).strip() for t in tags if str(t).strip()]
+    else:
+        tags = []
+    return {
+        "title": str(meta.get("title", "") or ""),
+        "artist": str(meta.get("artist", "") or ""),
+        "isrc": str(meta.get("isrc", "") or ""),
+        "tags": tags,
+    }
+
+
+def _public_track(track_id: str) -> Dict[str, object]:
+    """Build the public-facing track summary (without internal-only fields)."""
+    meta = _tracks[track_id]
+    return {
+        "track_id": track_id,
+        "filename": meta["filename"],
+        "duration": meta["duration"],
+        "num_segments": len(_track_segments.get(track_id, [])),
+        "title": str(meta.get("title", "")),
+        "artist": str(meta.get("artist", "")),
+        "isrc": str(meta.get("isrc", "")),
+        "tags": list(meta.get("tags", []) or []),
+    }
+
+
+def add_track(
+    filename: str,
+    duration: float,
+    sr: int,
+    model_version: str,
+    metadata: Dict[str, object] | None = None,
+) -> str:
     """Register a new track and return its unique ID."""
     _load_state()
     track_id = uuid4().hex  # generate a random unique identifier for this track
@@ -69,10 +111,27 @@ def add_track(filename: str, duration: float, sr: int, model_version: str) -> st
         "duration": float(duration),
         "sample_rate": int(sr),
         "model_version": model_version,
+        **_normalise_metadata(metadata),
     }
     _track_segments[track_id] = []
     _save_state()
     return track_id
+
+
+def update_track_metadata(
+    track_id: str, metadata: Dict[str, object]
+) -> Dict[str, object] | None:
+    """Update editable metadata fields on a track. Returns the updated track."""
+    _load_state()
+    if track_id not in _tracks:
+        return None
+    normalised = _normalise_metadata(metadata)
+    for field in _METADATA_FIELDS:
+        # Only overwrite fields explicitly provided by the caller.
+        if field in metadata:
+            _tracks[track_id][field] = normalised[field]
+    _save_state()
+    return get_track(track_id)
 
 
 def add_segments(track_id: str, segments: List[Dict[str, object]]) -> None:
@@ -96,33 +155,42 @@ def add_segments(track_id: str, segments: List[Dict[str, object]]) -> None:
 
 def list_tracks() -> List[Dict[str, object]]:
     _load_state()
-    results: List[Dict[str, object]] = []
-    for track_id, meta in _tracks.items():
-        results.append(
-            {
-                "track_id": track_id,
-                "filename": meta["filename"],
-                "duration": meta["duration"],
-                "num_segments": len(_track_segments.get(track_id, [])),
-            }
-        )
-    return results
+    return [_public_track(track_id) for track_id in _tracks]
 
 
 def get_track(track_id: str) -> Dict[str, object] | None:
     _load_state()
     if track_id not in _tracks:
         return None
-    meta = _tracks[track_id]
     segments = [
         _segments[segment_id] for segment_id in _track_segments.get(track_id, [])
     ]
+    return {**_public_track(track_id), "segments": segments}
+
+
+def delete_track(track_id: str) -> Dict[str, object] | None:
+    """Delete a track and its segments from the catalogue.
+
+    Returns a summary including the embedding IDs that should be removed from
+    the search index, or None if the track does not exist.
+    """
+    _load_state()
+    if track_id not in _tracks:
+        return None
+
+    segment_ids = _track_segments.pop(track_id, [])
+    embedding_ids: List[str] = []
+    for segment_id in segment_ids:
+        segment = _segments.pop(segment_id, None)
+        if segment is not None:
+            embedding_ids.append(str(segment.get("embedding_id", "")))
+
+    meta = _tracks.pop(track_id)
+    _save_state()
     return {
         "track_id": track_id,
-        "filename": meta["filename"],
-        "duration": meta["duration"],
-        "num_segments": len(segments),
-        "segments": segments,
+        "filename": str(meta.get("filename", "")),
+        "embedding_ids": embedding_ids,
     }
 
 
@@ -141,5 +209,31 @@ def embedding_to_track_map(embedding_ids: List[str]) -> Dict[str, Dict[str, obje
             lookup[emb_id] = {
                 "track_id": track_id,
                 "filename": str(track.get("filename", "")),
+            }
+    return lookup
+
+
+def embedding_to_segment_map(
+    embedding_ids: List[str],
+) -> Dict[str, Dict[str, object]]:
+    """Map fingerprint IDs to their track and the reference segment timing.
+
+    Used to align query segments against the matched reference segments.
+    """
+    _load_state()
+    lookup: Dict[str, Dict[str, object]] = {}
+    targets = set(embedding_ids)
+    if not targets:
+        return lookup
+    for segment in _segments.values():
+        emb_id = str(segment.get("embedding_id", ""))
+        if emb_id in targets:
+            track_id = str(segment["track_id"])
+            track = _tracks.get(track_id, {})
+            lookup[emb_id] = {
+                "track_id": track_id,
+                "filename": str(track.get("filename", "")),
+                "ref_start": float(segment.get("start_time", 0.0)),
+                "ref_end": float(segment.get("end_time", 0.0)),
             }
     return lookup

@@ -11,8 +11,9 @@ from fastapi import HTTPException, UploadFile
 
 from ..config import ALLOWED_EXTENSIONS, MAX_FILENAME_LENGTH, MAX_UPLOAD_MB
 
-# Safe filename: letters, digits, dot, dash, underscore, space.
-_SAFE_FILENAME_RE = re.compile(r"^[A-Za-z0-9._\- ]+$")
+# Safe filename: alphanumerics plus common punctuation in music titles.
+# Path separators and null bytes are stripped before this check.
+_SAFE_FILENAME_RE = re.compile(r"^[A-Za-z0-9._\- '(),&+#!]+$")
 # track_id values are uuid4().hex (32 lowercase hex chars).
 _TRACK_ID_RE = re.compile(r"^[a-f0-9]{32}$")
 
