@@ -209,7 +209,7 @@ export function QueryPage() {
                       className="rounded-lg border border-accent/30 bg-accent/10 px-3 py-2.5 text-xs text-foreground/90"
                     >
                       Multiple tracks scored similarly ({(result.similarity_gap * 100).toFixed(1)}%
-                      gap). High fingerprint scores can reflect shared genre or production —
+                      gap). High fingerprint scores can reflect shared genre or production -
                       use the players below to verify whether it&apos;s truly the same song.
                     </motion.div>
                   )}

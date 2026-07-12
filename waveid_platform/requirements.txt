@@ -7,3 +7,4 @@ soundfile
 pydub
 torch>=2.0
 slowapi>=0.1.9
+pandas>=2.0

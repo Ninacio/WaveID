@@ -55,7 +55,7 @@ def bandpass_filter(
     waveform: np.ndarray, sr: int, low_hz: float, high_hz: float, order: int = 5
 ) -> np.ndarray:
     """Keep only the frequencies between low_hz and high_hz (simulates a low-quality speaker)."""
-    nyq = sr / 2.0  # Nyquist frequency — the highest frequency the sample rate can represent
+    nyq = sr / 2.0  # Nyquist frequency - the highest frequency the sample rate can represent
     # Clamp cut-off values to valid range before passing to the filter designer
     low = max(low_hz / nyq, 1e-6)
     high = min(high_hz / nyq, 1.0 - 1e-6)

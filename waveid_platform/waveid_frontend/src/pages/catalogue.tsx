@@ -199,7 +199,7 @@ export function CataloguePage() {
                       )}
                     </TableCell>
                     <TableCell className="max-w-[160px] truncate text-muted-foreground">
-                      {t.artist || "—"}
+                      {t.artist || "-"}
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
                       {t.num_segments}

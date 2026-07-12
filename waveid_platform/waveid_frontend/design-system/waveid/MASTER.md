@@ -7,202 +7,89 @@
 ---
 
 **Project:** WaveID
-**Generated:** 2026-07-03 11:41:59
-**Category:** Music Streaming
+**Identity:** Signal Lab - forensic audio instrument
+**Updated:** 2026-07-03
 
 ---
+
+## Concept
+
+WaveID proves that a transformed clip came from a reference track. The UI
+reads like **lab equipment**: near-black canvas, phosphor-green readouts,
+amber alert channel, monospace data type, crosshair/reticle details.
+Precision, repeatability, evidence - never "vibey" gradients or decorative
+glassmorphism.
 
 ## Global Rules
 
-### Color Palette
+### Color Palette (dark = native mode)
 
-| Role | Hex | CSS Variable |
-|------|-----|--------------|
-| Primary | `#1E1B4B` | `--color-primary` |
-| On Primary | `#FFFFFF` | `--color-on-primary` |
-| Secondary | `#4338CA` | `--color-secondary` |
-| Accent/CTA | `#22C55E` | `--color-accent` |
-| Background | `#0F0F23` | `--color-background` |
-| Foreground | `#F8FAFC` | `--color-foreground` |
-| Muted | `#27273B` | `--color-muted` |
-| Border | `#312E81` | `--color-border` |
-| Destructive | `#EF4444` | `--color-destructive` |
-| Ring | `#1E1B4B` | `--color-ring` |
+| Role | Dark | Light ("lab daylight") | CSS Variable |
+|------|------|------------------------|--------------|
+| Background | `#07090B` | `#F5F8F7` | `--background` |
+| Card / surface | `#0E131B` | `#FFFFFF` | `--card` |
+| Primary (phosphor) | `#00E5A0` | `#047857` | `--primary` |
+| Accent (amber alert) | `#FFB020` | `#B45309` | `--accent` |
+| Destructive | `#FF4D6D` | `#DC2626` | `--destructive` |
+| Muted text | `#7F95A9` | `#566761` | `--muted-foreground` |
+| Border | `#1C2836` | `#D7E0DD` | `--border` |
 
-**Color Notes:** Dark audio + play green
+Semantics: **primary/green = signal, confirmation, match**. **accent/amber =
+caution, peak-hold, "listen & compare"**. **destructive/red = mismatch, error**.
+Never use accent as a decorative tint - it is an alert channel.
 
 ### Typography
 
-- **Heading Font:** Orbitron
-- **Body Font:** JetBrains Mono
-- **Mood:** cyberpunk, neon, glitch, hud, sci-fi, dark, matrix green, magenta, chamfered, tactical
-- **Google Fonts:** [Orbitron + JetBrains Mono](https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Orbitron:wght@700;900&display=swap)
+- **Display/body:** Space Grotesk (400–700)
+- **Data/labels:** JetBrains Mono (400–600) - all numeric readouts, labels,
+  timestamps, file names
+- Labels use the `.label-mono` utility: mono + uppercase + `0.18em` tracking
+- Numbers are always `tabular-nums`
 
-**CSS Import:**
-```css
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Orbitron:wght@700;900&display=swap');
-```
+### Instrument Utilities (in `src/index.css`)
 
-### Spacing Variables
+| Utility | Effect |
+|---------|--------|
+| `.grid-bg` | Blueprint grid backdrop tinted by `--primary` |
+| `.corner-ticks` | Crosshair corner brackets on cards (needs `position` set) |
+| `.label-mono` | Monospace uppercase tracked label |
+| `.glow-primary` | Phosphor text glow (dark mode only) |
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| `--space-xs` | `4px` / `0.25rem` | Tight gaps |
-| `--space-sm` | `8px` / `0.5rem` | Icon gaps, inline spacing |
-| `--space-md` | `16px` / `1rem` | Standard padding |
-| `--space-lg` | `24px` / `1.5rem` | Section padding |
-| `--space-xl` | `32px` / `2rem` | Large gaps |
-| `--space-2xl` | `48px` / `3rem` | Section margins |
-| `--space-3xl` | `64px` / `4rem` | Hero padding |
+The landing page additionally uses the scoped `.sl-root` system in
+`src/styles/signal.css` (scanlines, vignette, scan-sweep cards, sl buttons).
 
-### Shadow Depths
+### Motion
 
-| Level | Value | Usage |
-|-------|-------|-------|
-| `--shadow-sm` | `0 1px 2px rgba(0,0,0,0.05)` | Subtle lift |
-| `--shadow-md` | `0 4px 6px rgba(0,0,0,0.1)` | Cards, buttons |
-| `--shadow-lg` | `0 10px 15px rgba(0,0,0,0.1)` | Modals, dropdowns |
-| `--shadow-xl` | `0 20px 25px rgba(0,0,0,0.15)` | Hero images, featured cards |
+Primitives live in `src/components/motion/primitives.tsx`:
 
----
+- `Reveal` / `RevealItem` - fade-rise on scroll, staggered lists
+- `CountUp` - numeric readouts tick up when scrolled into view
 
-## Component Specs
+Rules: motion communicates *measurement* (sweeps, counts, streams), not
+decoration. Everything honours `prefers-reduced-motion` with a settled
+static state. Durations 150–700ms; easing `[0.16, 1, 0.3, 1]` for reveals.
 
-### Buttons
+### Radius
 
-```css
-/* Primary Button */
-.btn-primary {
-  background: #22C55E;
-  color: white;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: all 200ms ease;
-  cursor: pointer;
-}
-
-.btn-primary:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-}
-
-/* Secondary Button */
-.btn-secondary {
-  background: transparent;
-  color: #1E1B4B;
-  border: 2px solid #1E1B4B;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: all 200ms ease;
-  cursor: pointer;
-}
-```
-
-### Cards
-
-```css
-.card {
-  background: #0F0F23;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: var(--shadow-md);
-  transition: all 200ms ease;
-  cursor: pointer;
-}
-
-.card:hover {
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-2px);
-}
-```
-
-### Inputs
-
-```css
-.input {
-  padding: 12px 16px;
-  border: 1px solid #E2E8F0;
-  border-radius: 8px;
-  font-size: 16px;
-  transition: border-color 200ms ease;
-}
-
-.input:focus {
-  border-color: #1E1B4B;
-  outline: none;
-  box-shadow: 0 0 0 3px #1E1B4B20;
-}
-```
-
-### Modals
-
-```css
-.modal-overlay {
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
-}
-
-.modal {
-  background: white;
-  border-radius: 16px;
-  padding: 32px;
-  box-shadow: var(--shadow-xl);
-  max-width: 500px;
-  width: 90%;
-}
-```
-
----
-
-## Style Guidelines
-
-**Style:** Dark Mode (OLED)
-
-**Keywords:** Dark theme, low light, high contrast, deep black, midnight blue, eye-friendly, OLED, night mode, power efficient
-
-**Best For:** Night-mode apps, coding platforms, entertainment, eye-strain prevention, OLED devices, low-light
-
-**Key Effects:** Minimal glow (text-shadow: 0 0 10px), dark-to-light transitions, low white emission, high readability, visible focus
-
-### Page Pattern
-
-**Pattern Name:** Minimal Single Column
-
-- **Conversion Strategy:** Single CTA focus. Large typography. Lots of whitespace. No nav clutter. Mobile-first.
-- **CTA Placement:** Center, large CTA button
-- **Section Order:** 1. Hero headline, 2. Short description, 3. Benefit bullets (3 max), 4. CTA, 5. Footer
+Small and technical: `--radius: 0.375rem`. Instrument surfaces are square-ish;
+avoid pill shapes except status chips.
 
 ---
 
 ## Anti-Patterns (Do NOT Use)
 
-- ❌ Cluttered layout
-- ❌ Poor audio player UX
-
-### Additional Forbidden Patterns
-
-- ❌ **Emojis as icons** — Use SVG icons (Heroicons, Lucide, Simple Icons)
-- ❌ **Missing cursor:pointer** — All clickable elements must have cursor:pointer
-- ❌ **Layout-shifting hovers** — Avoid scale transforms that shift layout
-- ❌ **Low contrast text** — Maintain 4.5:1 minimum contrast ratio
-- ❌ **Instant state changes** — Always use transitions (150-300ms)
-- ❌ **Invisible focus states** — Focus states must be visible for a11y
-
----
+- ❌ Purple/indigo gradients, glassmorphism, "AI startup" glow blobs
+- ❌ Decorative emoji, emojis as icons (use Lucide)
+- ❌ Amber/accent as decoration (it means *caution*)
+- ❌ Layout-shifting hovers; instant state changes (use 150–300ms)
+- ❌ Low contrast text (4.5:1 minimum); invisible focus states
+- ❌ Motion without a reduced-motion fallback
 
 ## Pre-Delivery Checklist
 
-Before delivering any UI code, verify:
-
-- [ ] No emojis used as icons (use SVG instead)
-- [ ] All icons from consistent icon set (Heroicons/Lucide)
-- [ ] `cursor-pointer` on all clickable elements
-- [ ] Hover states with smooth transitions (150-300ms)
-- [ ] Light mode: text contrast 4.5:1 minimum
-- [ ] Focus states visible for keyboard navigation
+- [ ] Numeric readouts are mono + tabular
+- [ ] Labels use `.label-mono`
+- [ ] Green = match/confirm, amber = caution, red = error (never mixed)
 - [ ] `prefers-reduced-motion` respected
+- [ ] Focus states visible; contrast ≥ 4.5:1
 - [ ] Responsive: 375px, 768px, 1024px, 1440px
-- [ ] No content hidden behind fixed navbars
-- [ ] No horizontal scroll on mobile

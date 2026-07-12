@@ -136,7 +136,7 @@ def query_track_matches(
         hits = int(row["hits"])
         avg_score = float(row["score_sum"]) / max(hits, 1)
         if avg_score < MIN_TRACK_SCORE:
-            continue  # below the minimum confidence threshold — skip
+            continue  # below the minimum confidence threshold - skip
         ranked_matches.append(
             {
                 "track_id": str(row["track_id"]),

@@ -12,6 +12,7 @@ import {
 import type { ComponentType } from "react"
 
 import { getCatalogue, type CatalogueTrack } from "@/lib/api"
+import { CountUp } from "@/components/motion/primitives"
 import { PageHeader } from "@/components/common/page-header"
 import { Button } from "@/components/ui/button"
 import {
@@ -36,19 +37,21 @@ function StatCard({
   loading?: boolean
 }) {
   return (
-    <Card>
+    <Card className="corner-ticks">
       <CardContent className="flex items-center gap-4">
-        <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/15 text-primary">
+        <div className="flex h-11 w-11 items-center justify-center border border-primary/30 bg-primary/10 text-primary">
           <Icon className="h-5 w-5" />
         </div>
         <div className="space-y-1">
-          <div className="text-xs uppercase tracking-wide text-muted-foreground">
+          <div className="label-mono text-[11px] text-muted-foreground">
             {label}
           </div>
           {loading ? (
             <Skeleton className="h-7 w-16" />
           ) : (
-            <div className="text-2xl font-semibold tabular-nums">{value}</div>
+            <div className="font-mono text-2xl font-semibold tabular-nums text-primary glow-primary">
+              {typeof value === "number" ? <CountUp to={value} /> : value}
+            </div>
           )}
         </div>
       </CardContent>

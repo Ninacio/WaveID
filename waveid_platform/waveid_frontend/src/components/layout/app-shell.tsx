@@ -34,10 +34,10 @@ function NavItems({ onNavigate }: { onNavigate?: () => void }) {
           onClick={onNavigate}
           className={({ isActive }) =>
             cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+              "label-mono flex items-center gap-3 border-l-2 px-3 py-2.5 text-xs transition-colors",
               isActive
-                ? "bg-primary/15 text-foreground"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
             )
           }
         >
@@ -57,7 +57,7 @@ export function AppShell() {
   return (
     <div className="min-h-screen bg-background">
       {/* Sidebar (desktop) */}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-border bg-card/40 px-4 py-5 lg:flex">
+      <aside className="grid-bg fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-border bg-card/40 px-4 py-5 lg:flex">
         <button
           onClick={() => navigate("/")}
           className="mb-6 flex items-center px-1"

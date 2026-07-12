@@ -5,13 +5,13 @@ Vite + React + TypeScript, Tailwind CSS v4, and shadcn-style components.
 
 ## Stack
 
-- **Vite + React 19 + TypeScript** — app foundation
-- **Tailwind CSS v4** (`@tailwindcss/vite`) — styling, with WaveID purple/gold theme tokens
-- **shadcn/ui conventions** — primitives in `src/components/ui`
-- **React Router** — routing
-- **TanStack Query** — data fetching/caching against the FastAPI backend
-- **framer-motion** — hero animation
-- **sonner** — toast notifications
+- **Vite + React 19 + TypeScript** - app foundation
+- **Tailwind CSS v4** (`@tailwindcss/vite`) - styling, with WaveID purple/gold theme tokens
+- **shadcn/ui conventions** - primitives in `src/components/ui`
+- **React Router** - routing
+- **TanStack Query** - data fetching/caching against the FastAPI backend
+- **framer-motion** - hero animation
+- **sonner** - toast notifications
 
 ## Getting started
 

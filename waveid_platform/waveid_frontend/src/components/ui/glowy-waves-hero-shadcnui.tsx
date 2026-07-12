@@ -339,7 +339,7 @@ export function GlowyWavesHero() {
           >
             WaveID recognises reference tracks inside short-form clips even when
             they have been pitch-shifted, time-stretched, cropped, layered, or
-            mixed — powered by contrastive audio embeddings and similarity
+            mixed - powered by contrastive audio embeddings and similarity
             search.
           </motion.p>
 

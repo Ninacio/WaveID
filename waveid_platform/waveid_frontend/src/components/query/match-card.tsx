@@ -15,8 +15,8 @@ function MeterRow({ label, value, delay = 0 }: { label: string; value: number; d
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between text-xs">
-        <span className="text-muted-foreground">{label}</span>
-        <span className="font-medium tabular-nums">{pct.toFixed(1)}%</span>
+        <span className="label-mono text-[10px] text-muted-foreground">{label}</span>
+        <span className="font-mono font-medium tabular-nums">{pct.toFixed(1)}%</span>
       </div>
       <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
         <motion.div
@@ -60,9 +60,9 @@ export function MatchCard({
   return (
     <motion.div
       className={cn(
-        "rounded-xl border bg-card p-4",
+        "rounded-lg border bg-card p-4",
         rank === 0
-          ? "border-primary/50 shadow-[0_0_24px_-12px_var(--color-primary)]"
+          ? "corner-ticks border-primary/50 shadow-[0_0_24px_-12px_var(--color-primary)]"
           : "border-border"
       )}
       whileHover={{
@@ -97,7 +97,7 @@ export function MatchCard({
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.28, ease: "easeOut", delay: 0.06 }}
       >
-        <span className="text-2xl font-semibold tabular-nums">
+        <span className="font-mono text-2xl font-semibold tabular-nums text-primary glow-primary">
           {confidencePct}%
         </span>
         <span className="text-xs text-muted-foreground">

@@ -25,7 +25,7 @@ from ..config import (
 def _extract_mfcc(waveform: np.ndarray, sr: int) -> list[float]:
     """Converts a short audio clip into a 128-number fingerprint using frequency statistics (MFCC)."""
     if waveform.size == 0:
-        return [0.0] * EMBEDDING_DIM  # nothing to process — return a blank fingerprint
+        return [0.0] * EMBEDDING_DIM  # nothing to process - return a blank fingerprint
 
     # Summarise how energy is spread across frequency bands over time
     mfcc = librosa.feature.mfcc(y=waveform, sr=sr, n_mfcc=MFCC_COEFFS)
@@ -75,7 +75,7 @@ def _extract_contrastive(waveform: np.ndarray, sr: int) -> list[float]:
     else:
         x = np.expand_dims(x, axis=0)
     t = torch.from_numpy(x)
-    with torch.no_grad():  # no gradient tracking needed — we are just predicting, not training
+    with torch.no_grad():  # no gradient tracking needed - we are just predicting, not training
         emb = _contrastive_model(t)
     return emb.squeeze(0).numpy().tolist()
 

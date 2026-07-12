@@ -49,12 +49,12 @@ Each entry includes tasks completed, issues encountered, next steps, and supervi
 
 **Quick utilities:**
 
-- `waveid_platform/scripts/compare_audio.py` — compare two audio files by SHA‑256 + basic stats  
+- `waveid_platform/scripts/compare_audio.py` - compare two audio files by SHA‑256 + basic stats  
   ```bash
   cd waveid_platform && python -m scripts.compare_audio --file-a "path/to/a.wav" --file-b "path/to/b.wav"
   ```
 
-- `waveid_platform/scripts/run_eval_pipeline.py` — one-command evaluation demo  
+- `waveid_platform/scripts/run_eval_pipeline.py` - one-command evaluation demo  
   ```bash
   cd waveid_platform && python -m scripts.run_eval_pipeline --reference "path/to/blues.00000.wav" --max-seconds 5 --max-query-segments 1 --top-k 3
   ```

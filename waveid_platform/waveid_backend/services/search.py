@@ -41,7 +41,7 @@ def _load_state() -> None:
     """Load up thefingerprints from disk into memory if not already loaded."""
     global _embeddings, _identifiers, _loaded
     if _loaded:
-        return  # already loaded — nothing to do
+        return  # already loaded - nothing to do
     _loaded = True
     if _EMBEDDINGS_PATH.exists() and _IDS_PATH.exists():
         array = np.load(_EMBEDDINGS_PATH)

@@ -139,7 +139,7 @@ export function TrackDetailPage() {
                   </dt>
                   <dd className="mt-0.5 text-sm font-medium">
                     {data.artist || (
-                      <span className="text-muted-foreground">—</span>
+                      <span className="text-muted-foreground">-</span>
                     )}
                   </dd>
                 </div>
@@ -149,7 +149,7 @@ export function TrackDetailPage() {
                   </dt>
                   <dd className="mt-0.5 text-sm font-medium">
                     {data.title || (
-                      <span className="text-muted-foreground">—</span>
+                      <span className="text-muted-foreground">-</span>
                     )}
                   </dd>
                 </div>
@@ -159,7 +159,7 @@ export function TrackDetailPage() {
                   </dt>
                   <dd className="mt-0.5 font-mono text-sm">
                     {data.isrc || (
-                      <span className="font-sans text-muted-foreground">—</span>
+                      <span className="font-sans text-muted-foreground">-</span>
                     )}
                   </dd>
                 </div>
@@ -175,7 +175,7 @@ export function TrackDetailPage() {
                         </Badge>
                       ))
                     ) : (
-                      <span className="text-sm text-muted-foreground">—</span>
+                      <span className="text-sm text-muted-foreground">-</span>
                     )}
                   </dd>
                 </div>

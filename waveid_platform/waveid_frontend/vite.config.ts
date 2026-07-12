@@ -27,7 +27,18 @@ export default defineConfig({
     proxy: Object.fromEntries(
       apiRoutes.map((route) => [
         route,
-        { target: BACKEND_URL, changeOrigin: true },
+        {
+          target: BACKEND_URL,
+          changeOrigin: true,
+          // SPA routes like /query and /catalogue share paths with the API.
+          // Browser page loads (Accept: text/html) fall through to the SPA;
+          // fetch/XHR calls (Accept: application/json, */*) hit the backend.
+          bypass: (req: { method?: string; headers: { accept?: string } }) =>
+            req.method === "GET" &&
+            req.headers.accept?.includes("text/html")
+              ? "/index.html"
+              : undefined,
+        },
       ])
     ),
   },

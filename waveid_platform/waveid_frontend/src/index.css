@@ -1,62 +1,72 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
 @import "tailwindcss";
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
+/* ============================================================================
+   WaveID "Signal Lab" tokens
+   Forensic audio-instrument identity: near-black canvas, phosphor-green
+   primary, amber alert accent, monospace data type.
+   Dark is the native mode; light is a "lab daylight" variant.
+   ========================================================================== */
+
 :root {
-  --radius: 0.625rem;
+  --radius: 0.375rem;
 
-  /* Light theme */
-  --background: oklch(0.99 0.004 280);
-  --foreground: oklch(0.18 0.03 285);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.03 285);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.03 285);
+  /* Lab daylight */
+  --background: #f5f8f7;
+  --foreground: #0f1b17;
+  --card: #ffffff;
+  --card-foreground: #0f1b17;
+  --popover: #ffffff;
+  --popover-foreground: #0f1b17;
 
-  /* WaveID purple */
-  --primary: oklch(0.45 0.19 305);
-  --primary-foreground: oklch(0.98 0.01 300);
+  /* Phosphor green, darkened for paper contrast */
+  --primary: #047857;
+  --primary-foreground: #f6fdfa;
 
-  --secondary: oklch(0.95 0.01 300);
-  --secondary-foreground: oklch(0.25 0.05 300);
-  --muted: oklch(0.96 0.006 300);
-  --muted-foreground: oklch(0.5 0.02 300);
+  --secondary: #e7edeb;
+  --secondary-foreground: #23332d;
+  --muted: #edf1f0;
+  --muted-foreground: #566761;
 
-  /* WaveID gold */
-  --accent: oklch(0.78 0.12 85);
-  --accent-foreground: oklch(0.25 0.05 300);
+  /* Amber alert channel */
+  --accent: #b45309;
+  --accent-foreground: #ffffff;
 
-  --destructive: oklch(0.58 0.22 27);
-  --border: oklch(0.9 0.01 300);
-  --input: oklch(0.9 0.01 300);
-  --ring: oklch(0.45 0.19 305);
+  --destructive: #dc2626;
+  --border: #d7e0dd;
+  --input: #d7e0dd;
+  --ring: #047857;
 }
 
 .dark {
-  /* WaveID dark theme (matches the existing static UI) */
-  --background: oklch(0.13 0.012 285);
-  --foreground: oklch(0.98 0.005 285);
-  --card: oklch(0.16 0.014 285);
-  --card-foreground: oklch(0.98 0.005 285);
-  --popover: oklch(0.16 0.014 285);
-  --popover-foreground: oklch(0.98 0.005 285);
+  /* Instrument canvas */
+  --background: #07090b;
+  --foreground: #e8f1ee;
+  --card: #0e131b;
+  --card-foreground: #e8f1ee;
+  --popover: #0e131b;
+  --popover-foreground: #e8f1ee;
 
-  --primary: oklch(0.55 0.2 305);
-  --primary-foreground: oklch(0.98 0.01 300);
+  /* Phosphor green */
+  --primary: #00e5a0;
+  --primary-foreground: #04110c;
 
-  --secondary: oklch(0.24 0.03 300);
-  --secondary-foreground: oklch(0.98 0.005 285);
-  --muted: oklch(0.22 0.02 300);
-  --muted-foreground: oklch(0.68 0.02 300);
+  --secondary: #131a24;
+  --secondary-foreground: #e8f1ee;
+  --muted: #131a24;
+  --muted-foreground: #7f95a9;
 
-  --accent: oklch(0.78 0.12 85);
-  --accent-foreground: oklch(0.18 0.03 285);
+  /* Amber alert channel */
+  --accent: #ffb020;
+  --accent-foreground: #0a0e13;
 
-  --destructive: oklch(0.62 0.2 25);
-  --border: oklch(0.27 0.02 300 / 60%);
-  --input: oklch(0.3 0.02 300 / 50%);
-  --ring: oklch(0.6 0.18 305);
+  --destructive: #ff4d6d;
+  --border: #1c2836;
+  --input: #1c2836;
+  --ring: #00e5a0;
 }
 
 @theme inline {
@@ -64,6 +74,9 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  --font-sans: "Space Grotesk", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -93,7 +106,65 @@
   body {
     background-color: var(--background);
     color: var(--foreground);
-    font-family: "Inter", system-ui, sans-serif;
+    font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* ---- Shared instrument utilities (theme-aware via semantic tokens) ------- */
+@layer utilities {
+  /* Blueprint grid backdrop */
+  .grid-bg {
+    background-image: linear-gradient(
+        color-mix(in srgb, var(--primary) 5%, transparent) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--primary) 5%, transparent) 1px,
+        transparent 1px
+      );
+    background-size: 48px 48px;
+  }
+
+  /* Crosshair corner ticks - element must be positioned */
+  .corner-ticks {
+    position: relative;
+  }
+  .corner-ticks::before,
+  .corner-ticks::after {
+    content: "";
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-color: var(--primary);
+    border-style: solid;
+    opacity: 0.7;
+    pointer-events: none;
+  }
+  .corner-ticks::before {
+    top: -1px;
+    left: -1px;
+    border-width: 2px 0 0 2px;
+  }
+  .corner-ticks::after {
+    bottom: -1px;
+    right: -1px;
+    border-width: 0 2px 2px 0;
+  }
+
+  /* Monospace instrument label */
+  .label-mono {
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+  }
+
+  /* Phosphor text glow (dark mode only - daylight gets none) */
+  .glow-primary {
+    text-shadow: none;
+  }
+  .dark .glow-primary {
+    text-shadow: 0 0 18px color-mix(in srgb, var(--primary) 45%, transparent);
   }
 }
